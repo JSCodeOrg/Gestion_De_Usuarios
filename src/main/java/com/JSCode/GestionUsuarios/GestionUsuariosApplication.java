@@ -1,4 +1,4 @@
-package com.example.GestionUsuarios;
+package com.JSCode.GestionUsuarios;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,5 +9,5 @@ public class GestionUsuariosApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GestionUsuariosApplication.class, args);
 	}
-
+	
 }
