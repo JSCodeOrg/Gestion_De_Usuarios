@@ -9,7 +9,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
 @Service
-public class EmailService {
+public class checkEmailService {
     
     @PersistenceContext
     private EntityManager entityManager;

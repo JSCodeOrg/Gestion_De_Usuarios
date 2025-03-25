@@ -7,33 +7,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.JSCode.GestionUsuarios.models.UserCredentials;
-import com.JSCode.GestionUsuarios.services.EmailService;
+import com.JSCode.GestionUsuarios.dto.UserCredentials;
+import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
+import com.JSCode.GestionUsuarios.models.User;
+import com.JSCode.GestionUsuarios.services.UserService;
+
 
 @RestController
 @RequestMapping("/users")
-public class userController { // Cambio a PascalCase
+
+public class UserController {
 
     @Autowired
-    private EmailService emailService;
-
-    @PostMapping("/check-email")
-    public ResponseEntity<?> checkEmail(@RequestBody UserCredentials credentials) {
-        // Validación de entrada
-        if (credentials == null || credentials.getMail() == null || credentials.getMail().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("El email es requerido");
+    private UserService userService;
+    
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody UserRegisterDto data){
+        try{
+            User user = userService.registerUser(data);
+            return ResponseEntity.ok(user);
         }
-        
-        String email = credentials.getMail().trim().toLowerCase(); // Normalización
-        
-        if (!emailService.isValidEmail(email)) {
-            return ResponseEntity.badRequest().body("Formato de email inválido");
+        catch(RuntimeException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        
-        if (emailService.emailExists(email)) {
-            return ResponseEntity.ok().body("El email ya está registrado");
-        }
-        
-        return ResponseEntity.ok().body("Email disponible");
     }
+
 }
