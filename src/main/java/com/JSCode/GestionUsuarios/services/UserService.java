@@ -1,10 +1,15 @@
 package com.JSCode.GestionUsuarios.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
+import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
+import com.JSCode.GestionUsuarios.exceptions.ConflictException;
+import com.JSCode.GestionUsuarios.exceptions.NotFoundException;
 import com.JSCode.GestionUsuarios.models.Person;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.models.UserPerRole;
@@ -37,14 +42,14 @@ public class UserService {
 
     public User registerUser(UserRegisterDto data){
         if(userRepository.existsByMail(data.getMail())) {
-            throw new RuntimeException("Email already exists");
+            throw new ConflictException("El email ya está registrado");
         }
         if(personRepository.existsByDocument(data.getDocument())) {
-            throw new RuntimeException("Document already exists");
+            throw new ConflictException("El documento ya está registrado");
         }
 
         if(!checkEmailService.isValidEmail(data.getMail())){
-            throw new RuntimeException("Invalid Email");
+            throw new BadRequestException("El email no es válido");
         }
 
         User user = new User();
@@ -64,7 +69,7 @@ public class UserService {
 
             UserPerRole userPerRole = new UserPerRole();
             userPerRole.setUser(user);
-            userPerRole.setRole(rolesRepository.findByName("usuario").orElseThrow(() -> new RuntimeException("No se encontró el Rol Usuario")));
+            userPerRole.setRole(rolesRepository.findByName("usuario").orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
             userPerRoleRepository.save(userPerRole);
 
             return user;

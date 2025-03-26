@@ -15,7 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.JSCode.GestionUsuarios.controllers.UserController;
+import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
+import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
+import com.JSCode.GestionUsuarios.exceptions.ConflictException;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
 
@@ -30,22 +33,52 @@ class UserControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
-    
+
+    @Test
+    void testRegisterUser_Success() {
+        UserRegisterDto dto = new UserRegisterDto();
+        dto.setMail("example@mail.com");
+        dto.setPassword("password");
+        dto.setDocument("12345678");
+        dto.setNombre("Juan");
+        dto.setApellido("Perez");
+        dto.setDireccion("Calle Falsa 123");
+        dto.setTelefono("9384982934");
+        dto.setRoleName("usuario");
+
+        User mockUser = new User();
+        mockUser.setMail(dto.getMail());
+
+        when(userService.registerUser(any(UserRegisterDto.class))).thenReturn(mockUser);
+
+        ResponseEntity<ApiResponse<User>> response = userController.register(dto);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Registro exitoso", response.getBody().getMessage());
+        assertEquals(mockUser, response.getBody().getData());
+        assertEquals(false, response.getBody().isError());
+        assertEquals(200, response.getBody().getStatus());
+
+        verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
+    }
+
     @Test
     void testRegisterUser_EmailAlreadyExists() {
         UserRegisterDto dto = new UserRegisterDto();
         dto.setMail("existing@example.com");
 
         when(userService.registerUser(any(UserRegisterDto.class)))
-                .thenThrow(new RuntimeException("Email already exists"));
+                .thenThrow(new ConflictException("El email ya está registrado"));
 
-        ResponseEntity<?> response = userController.register(dto);
-
-        assertEquals(400, response.getStatusCode().value());
-        assertEquals("Email already exists", response.getBody());
+        try {
+            userController.register(dto);
+        } catch (ConflictException ex) {
+            assertEquals("El email ya está registrado", ex.getMessage());
+        }
 
         verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
     }
+
     @Test
     void testRegisterUser_InvalidEmail() {
         UserRegisterDto dto = new UserRegisterDto();
@@ -59,12 +92,14 @@ class UserControllerTest {
         dto.setRoleName("usuario");
 
         when(userService.registerUser(any(UserRegisterDto.class)))
-                .thenThrow(new RuntimeException("Invalid Email"));
+                .thenThrow(new BadRequestException("El email no es válido"));
 
-        ResponseEntity<?> response = userController.register(dto);
+        try {
+            userController.register(dto);
+        } catch (BadRequestException ex) {
+            assertEquals("El email no es válido", ex.getMessage());
+        }
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()); 
-        assertEquals("Invalid Email", response.getBody()); 
         verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
     }
 }
