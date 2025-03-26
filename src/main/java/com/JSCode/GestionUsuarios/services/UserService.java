@@ -38,6 +38,7 @@ public class UserService {
     
 
     public User registerUser(UserRegisterDto data){
+
         if(userRepository.existsByMail(data.getMail())) {
             throw new ConflictException("El email ya está registrado");
         }
@@ -70,5 +71,7 @@ public class UserService {
             userPerRoleRepository.save(userPerRole);
 
             return user;
+    
     }
+
 }
