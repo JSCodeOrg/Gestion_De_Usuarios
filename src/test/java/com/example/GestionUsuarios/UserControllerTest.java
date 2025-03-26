@@ -11,12 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.AssertingParty.Verification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.JSCode.GestionUsuarios.controllers.UserController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
+import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
 import com.JSCode.GestionUsuarios.models.User;
@@ -102,4 +104,5 @@ class UserControllerTest {
 
         verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
     }
+
 }

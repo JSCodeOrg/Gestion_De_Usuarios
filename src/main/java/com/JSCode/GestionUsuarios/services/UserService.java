@@ -1,5 +1,10 @@
 package com.JSCode.GestionUsuarios.services;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.mail.MessagingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +43,14 @@ public class UserService {
 
     @Autowired
     private checkEmailService checkEmailService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private VerificationCodeGenerator codeGenerator;
     
+    private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
     public User registerUser(UserRegisterDto data){
         if(userRepository.existsByMail(data.getMail())) {
@@ -52,9 +64,19 @@ public class UserService {
             throw new BadRequestException("El email no es válido");
         }
 
+        String verificationCode = codeGenerator.generateVerificationCode();
+        verificationCodes.put(data.getMail(), verificationCode);
+
+        try{
+            emailService.sendVerificationEmail(data.getMail(), verificationCode);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error al enviar el correo de verificacion");
+        }
+
         User user = new User();
             user.setMail(data.getMail());
             user.setPassword(passwordEncoder.encode(data.getPassword()));
+            user.setVerified(false);
             user = userRepository.save(user);
 
             Person person = new Person();
@@ -73,5 +95,20 @@ public class UserService {
             userPerRoleRepository.save(userPerRole);
 
             return user;
+    }
+
+    public boolean verifyUser(String email, String code) {
+        String savedCode = verificationCodes.get(email);
+        if (savedCode != null && savedCode.equals(code)) {
+            User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+            user.setVerified(true);
+            userRepository.save(user);
+
+            verificationCodes.remove(email);
+            return true;
+        }
+
+        return false;
     }
 }

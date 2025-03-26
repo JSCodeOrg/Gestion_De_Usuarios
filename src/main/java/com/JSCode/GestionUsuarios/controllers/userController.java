@@ -12,6 +12,7 @@ import com.JSCode.GestionUsuarios.dto.UserCredentials;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
+import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 
 
 @RestController
@@ -28,5 +29,19 @@ public class UserController {
         return ResponseEntity.ok(
             new ApiResponse<>("Registro exitoso", user, false, 200)
         );
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyUser(@RequestBody VerificationRequest request) {
+        boolean isVerified = userService.verifyUser(request.getEmail(), request.getCode());
+        if (isVerified) {
+            return ResponseEntity.ok(
+                new ApiResponse<>("Email verificado correctamente", null, true, 200)
+            );
+        } else {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Codigo de verificacion invalido", null, true, 400)
+            );
+        }
     }
 }

@@ -26,4 +26,15 @@ public class User{
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "verified")
+    private boolean verified = false;
+    
+    public boolean isVerified() {
+        return verified;
+    }
+    
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+
 }

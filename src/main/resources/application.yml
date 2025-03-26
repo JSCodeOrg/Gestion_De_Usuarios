@@ -14,3 +14,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+email:
+  username: ${EMAIL_USERNAME}    
+  password: ${EMAIL_PASSWORD} 
+  host: smtp.gmail.com
+  port: 587
+  protocol: smtp
+  tls: true
+  auth: true
+  debug: false
+
+app:
+  verification:
+    code:
+      expiration: 15   
