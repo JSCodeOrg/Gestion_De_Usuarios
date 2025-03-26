@@ -3,41 +3,50 @@ import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtil {
-         private static final SecretKey key = Jwts.SIG.HS256.key().build();
 
+    private static final String SECRET_STRING = "MiClaveSecreta123@456#7890!ABCabc"; // Min 256 bits (32 chars)
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
+    private static final long EXPIRATION_MS = 3600000; // 1 hora
+
+    // 2. Generar token solo con el username (sin UserDetails)
     public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .signWith(key)
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(SECRET_KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return parseToken(token).getPayload().getSubject();
-    }
-
-    public boolean validateToken(String token, String username) {
-        return (username.equals(extractUsername(token)) && !isTokenExpired(token));
-    }
-
-    private Jws<Claims> parseToken(String token) {
         return Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(SECRET_KEY)
                 .build()
-                .parseSignedClaims(token);
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
-    private boolean isTokenExpired(String token) {
-        Date expiration = parseToken(token).getPayload().getExpiration();
-        return expiration.before(new Date());
+    public boolean isTokenValid(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parser()
+                    .verifyWith(SECRET_KEY)
+                    .build()
+                    .parseSignedClaims(token);
+            
+            return !claims.getPayload().getExpiration().before(new Date());
+        } catch (JwtException e) {
+            return false; 
+        }
     }
 }       
