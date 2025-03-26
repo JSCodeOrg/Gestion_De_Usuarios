@@ -29,7 +29,6 @@ public class UserController {
             new ApiResponse<>("Registro exitoso", user, false, 200)
         );
     }
-<<<<<<< HEAD
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<Void>> verifyUser(@RequestBody VerificationRequest request) {
@@ -45,6 +44,4 @@ public class UserController {
         }
     }
 }
-=======
 }   
->>>>>>> develop
