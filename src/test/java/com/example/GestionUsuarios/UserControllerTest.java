@@ -30,7 +30,7 @@ class UserControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
-
+    
     @Test
     void testRegisterUser_EmailAlreadyExists() {
         UserRegisterDto dto = new UserRegisterDto();
@@ -46,7 +46,6 @@ class UserControllerTest {
 
         verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
     }
-    
     @Test
     void testRegisterUser_InvalidEmail() {
         UserRegisterDto dto = new UserRegisterDto();
