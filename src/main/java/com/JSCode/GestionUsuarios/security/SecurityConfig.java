@@ -27,13 +27,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login").permitAll()  // Ruta pública
-                .anyRequest().authenticated()  // Resto protegido
+                .requestMatchers("/auth/login", "/users/register").permitAll() 
+                .anyRequest().authenticated()
             )
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // ¡Filtro agregado DESPUÉS de las reglas de autorización!
             .addFilterAfter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

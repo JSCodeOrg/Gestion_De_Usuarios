@@ -1,24 +1,20 @@
 package com.JSCode.GestionUsuarios.security;
 import org.springframework.stereotype.Component;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-
 import java.util.Date;
-
 import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_STRING = "MiClaveSecreta123@456#7890!ABCabc"; // Min 256 bits (32 chars)
+    private static final String SECRET_STRING = "MiClaveSecreta123@456#7890!ABCabc"; 
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
-    private static final long EXPIRATION_MS = 3600000; // 1 hora
+    private static final long EXPIRATION_MS = 3600000;
 
-    // 2. Generar token solo con el username (sin UserDetails)
     public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
