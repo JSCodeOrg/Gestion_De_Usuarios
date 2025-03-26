@@ -11,8 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+<<<<<<< HEAD
 import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.AssertingParty.Verification;
 import org.springframework.http.HttpStatus;
+=======
+>>>>>>> develop
 import org.springframework.http.ResponseEntity;
 
 import com.JSCode.GestionUsuarios.controllers.UserController;
@@ -104,5 +107,9 @@ class UserControllerTest {
 
         verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> develop
 }

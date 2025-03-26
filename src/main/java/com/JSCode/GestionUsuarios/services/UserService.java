@@ -6,11 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.mail.MessagingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
@@ -53,6 +50,7 @@ public class UserService {
     private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
     public User registerUser(UserRegisterDto data){
+
         if(userRepository.existsByMail(data.getMail())) {
             throw new ConflictException("El email ya está registrado");
         }
@@ -95,6 +93,7 @@ public class UserService {
             userPerRoleRepository.save(userPerRole);
 
             return user;
+    
     }
 
     public boolean verifyUser(String email, String code) {
