@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
+import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
@@ -43,5 +44,13 @@ public class UserController {
             );
         }
     }
+ 
+    @PostMapping("/deactivate")
+    public ResponseEntity<ApiResponse<String>> requestAccountDeactivation(@RequestBody DeactivationRequest request) {
+        userService.DeactivationRequest(request.getMail());
+        return ResponseEntity.ok(new ApiResponse<>("Usuario desactivado exitosamente", null, false, 200));
+    }
 }
+
+
 

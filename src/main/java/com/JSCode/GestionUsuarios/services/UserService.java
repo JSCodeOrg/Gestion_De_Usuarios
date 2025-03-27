@@ -1,6 +1,9 @@
 package com.JSCode.GestionUsuarios.services;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.MessagingException;
@@ -109,5 +112,13 @@ public class UserService {
         }
 
         return false;
+    }
+
+    public User DeactivationRequest(String email){
+        User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        user.setDeleted_at(LocalDateTime.now());
+        userRepository.save(user);
+        return user;
     }
 }
