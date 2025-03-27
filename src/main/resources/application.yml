@@ -14,7 +14,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-<<<<<<< HEAD
 
 email:
   username: ${EMAIL_USERNAME}    
@@ -30,5 +29,3 @@ app:
   verification:
     code:
       expiration: 15   
-=======
->>>>>>> develop

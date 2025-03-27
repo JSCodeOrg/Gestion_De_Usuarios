@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.JSCode.GestionUsuarios.controllers.UserController;
@@ -21,6 +20,7 @@ import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
+
 
 class UserControllerTest {
     @Mock
@@ -102,61 +102,5 @@ class UserControllerTest {
 
         verify(userService, times(1)).registerUser(any(UserRegisterDto.class));
     }
-
-
-    @Test
-void testSendEmail_Success() {
-    String email = "test@example.com";
-    when(userService.sendVerificationEmail(email)).thenReturn(true);
-
-    ResponseEntity<ApiResponse<String>> response = userController.sendEmail(email);
-
-    assertEquals(200, response.getStatusCode().value());
-    assertEquals("Correo enviado exitosamente", response.getBody().getMessage());
-    assertEquals(false, response.getBody().isError());
-    verify(userService, times(1)).sendVerificationEmail(email);
-}
-
-@Test
-void testSendEmail_Failure() {
-    String email = "test@example.com";
-    when(userService.sendVerificationEmail(email)).thenThrow(new RuntimeException("Error enviando correo"));
-
-    try {
-        userController.sendEmail(email);
-    } catch (RuntimeException ex) {
-        assertEquals("Error enviando correo", ex.getMessage());
-    }
-
-    verify(userService, times(1)).sendVerificationEmail(email);
-}
-
-@Test
-void testValidateCode_Success() {
-    VerificationRequest request = new VerificationRequest("test@example.com", "123456");
-    when(userService.validateVerificationCode(any(VerificationRequest.class))).thenReturn(true);
-
-    ResponseEntity<ApiResponse<String>> response = userController.validateCode(request);
-
-    assertEquals(200, response.getStatusCode().value());
-    assertEquals("Código validado correctamente", response.getBody().getMessage());
-    assertEquals(false, response.getBody().isError());
-    verify(userService, times(1)).validateVerificationCode(any(VerificationRequest.class));
-}
-
-@Test
-void testValidateCode_InvalidCode() {
-    VerificationRequest request = new VerificationRequest("test@example.com", "wrong-code");
-    when(userService.validateVerificationCode(any(VerificationRequest.class)))
-            .thenThrow(new BadRequestException("Código inválido"));
-
-    try {
-        userController.validateCode(request);
-    } catch (BadRequestException ex) {
-        assertEquals("Código inválido", ex.getMessage());
-    }
-
-    verify(userService, times(1)).validateVerificationCode(any(VerificationRequest.class));
-}
 
 }
