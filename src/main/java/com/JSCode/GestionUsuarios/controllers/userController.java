@@ -35,7 +35,7 @@ public class UserController {
         boolean isVerified = userService.verifyUser(request.getEmail(), request.getCode());
         if (isVerified) {
             return ResponseEntity.ok(
-                new ApiResponse<>("Email verificado correctamente", null, true, 200)
+                new ApiResponse<>("Email verificado correctamente", null, false, 200)
             );
         } else {
             return ResponseEntity.badRequest().body(
