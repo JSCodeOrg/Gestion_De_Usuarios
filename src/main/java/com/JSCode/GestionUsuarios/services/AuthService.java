@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.JSCode.GestionUsuarios.dto.Auth.AuthResponse;
 import com.JSCode.GestionUsuarios.dto.Auth.UserCredentials;
+import com.JSCode.GestionUsuarios.exceptions.DeactivatedUserException;
 import com.JSCode.GestionUsuarios.exceptions.InvalidCredentialsException;
 import com.JSCode.GestionUsuarios.models.Person;
 import com.JSCode.GestionUsuarios.models.User;
@@ -26,23 +27,22 @@ public class AuthService {
     }
 
     public AuthResponse authenticate(UserCredentials userCredentials) {
-        // Buscar usuario por email
         User user = userRepository.findByMail(userCredentials.getMail())
                 .orElseThrow(() -> new InvalidCredentialsException("Usuario no encontrado"));
+        
+        if(user.getDeleted_at() != null){
+            throw new DeactivatedUserException("Usuario desactivado");
+        }
 
-        // Buscar persona asociada al usuario
         Person person = personRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCredentialsException("No se encontró información de la persona"));
 
-        // Verificar contraseña
         if (!passwordEncoder.matches(userCredentials.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Nombre de usuario o contraseña incorrectos");
         }
 
-        // Generar token JWT
         String token = jwtUtil.generateToken(user.getMail());
 
-        // Retornar respuesta con token y datos del usuario
         return new AuthResponse(token, person.getNombre(), user.getMail(), user.getId());
     }
 }

@@ -1,10 +1,11 @@
 package com.JSCode.GestionUsuarios.services;
 
+
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import javax.mail.MessagingException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ import com.JSCode.GestionUsuarios.repositories.UserPerRoleRepository;
 import com.JSCode.GestionUsuarios.repositories.PersonRepository;
 import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
+import com.JSCode.GestionUsuarios.services.Email.EmailService;
+import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 
 @Service
 public class UserService {
@@ -121,5 +124,13 @@ public class UserService {
         }
 
         return false;
+    }
+
+    public User DeactivationRequest(String email){
+        User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        user.setDeleted_at(LocalDateTime.now());
+        userRepository.save(user);
+        return user;
     }
 }

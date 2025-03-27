@@ -1,4 +1,7 @@
 package com.JSCode.GestionUsuarios.models;
+import java.sql.Date;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,8 +36,6 @@ public class User{
         return verified;
     }
     
-    public void setVerified(boolean verified) {
-        this.verified = verified;
-    }
-
+    @Column
+    private LocalDateTime deleted_at;
 }
