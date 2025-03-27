@@ -1,13 +1,10 @@
 package com.JSCode.GestionUsuarios.services;
 
-import java.sql.Date;
+
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.mail.MessagingException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +19,8 @@ import com.JSCode.GestionUsuarios.repositories.UserPerRoleRepository;
 import com.JSCode.GestionUsuarios.repositories.PersonRepository;
 import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
+import com.JSCode.GestionUsuarios.services.Email.EmailService;
+import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 
 @Service
 public class UserService {
