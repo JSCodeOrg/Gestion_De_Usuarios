@@ -2,7 +2,7 @@ package com.JSCode.GestionUsuarios.services;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +49,16 @@ public class UserService {
     
     private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile(
+        "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$"
+    );
+
+    private void validatePassword(String password) {
+        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+            throw new BadRequestException("La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.");
+        }
+    }
+
     public User registerUser(UserRegisterDto data){
 
         if(userRepository.existsByMail(data.getMail())) {
@@ -61,6 +71,8 @@ public class UserService {
         if(!checkEmailService.isValidEmail(data.getMail())){
             throw new BadRequestException("El email no es válido");
         }
+
+        validatePassword(data.getPassword());
 
         String verificationCode = codeGenerator.generateVerificationCode();
         verificationCodes.put(data.getMail(), verificationCode);
