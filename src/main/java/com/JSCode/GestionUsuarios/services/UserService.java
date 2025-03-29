@@ -133,4 +133,9 @@ public class UserService {
         userRepository.save(user);
         return user;
     }
+
+    
+    public boolean emailExists(String email) {
+        return userRepository.existsByMail(email);
+    }
 }
