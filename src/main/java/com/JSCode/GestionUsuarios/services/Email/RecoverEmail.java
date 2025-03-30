@@ -23,7 +23,7 @@ public class RecoverEmail {
     private String port;
 
 
-    public void sendRecoverEmail(String toEmail) throws MessagingException {
+    public void sendRecoverEmail(String toEmail, String verificationCode) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -45,8 +45,8 @@ public class RecoverEmail {
             
             String htmlContent = "<h2>Restablecimiento de contraseña</h2>"
                     + "<p>Hemos recibido una solicitud para restablecer tu contraseña.</p>"
-                    + "<p>Para continuar, haz clic en el siguiente enlace:</p>"
-                    + "<p><a href='enlace' style='font-size: 16px; color: #007BFF;'>Restablecer contraseña</a></p>"
+                    + "<p>Tu código de recuperación es: <strong>" + verificationCode + "</strong></p>"
+                    + "<p>Por favor, ingresa este código en nuestra aplicación para continuar con el proceso de restablecimiento.</p>"
                     + "<p>Si no solicitaste este cambio, puedes ignorar este mensaje. Tu contraseña actual seguirá siendo la misma.</p>"
                     + "<p>Atentamente,</p>"
                     + "<p><strong>El equipo de soporte</strong></p>";

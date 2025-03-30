@@ -16,6 +16,7 @@ import com.JSCode.GestionUsuarios.dto.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
+import com.JSCode.GestionUsuarios.services.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
 import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 
@@ -64,7 +65,8 @@ public class UserController {
         boolean existUser = userService.emailExists(request.getMail());
         if (existUser) {
             try {
-                recoverEmail.sendRecoverEmail(request.getMail());
+                String verificationCode = VerificationCodeGenerator.generateVerificationCode();
+                recoverEmail.sendRecoverEmail(request.getMail(), verificationCode);
                 return ResponseEntity.ok(
                     new ApiResponse<>("Email verificado correctamente. Se han enviado las instrucciones a tu correo.", null, false, 200)
                 );
