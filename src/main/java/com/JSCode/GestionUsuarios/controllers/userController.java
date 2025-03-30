@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.RecoverPassword;
+import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
@@ -80,6 +81,21 @@ public class UserController {
                 new ApiResponse<>("Usuario no registrado", null, true, 400)
             );
         }
+    }
+
+    @PostMapping("/edition")
+    public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {
+        if (request.getUserId() == null) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere user_id", null, true, 400)
+            );
+        }
+        
+        userService.updateUserData(request.getUserId(), request);
+        
+        return ResponseEntity.ok(
+            new ApiResponse<>("Datos actualizados correctamente", null, false, 200)
+        );
     }
 }
 

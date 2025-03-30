@@ -9,6 +9,8 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
@@ -137,5 +139,36 @@ public class UserService {
     
     public boolean emailExists(String email) {
         return userRepository.existsByMail(email);
+    }
+
+
+    public void updateUserData(Long userId, EditData editData) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        
+        Person person = personRepository.findByUser(user)
+            .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+             
+        if (editData.getNombre() != null) {
+            person.setNombre(editData.getNombre());
+        }
+        if (editData.getApellido() != null) {
+            person.setApellido(editData.getApellido());
+        }
+        if (editData.getDocument() != null) {
+            
+            if (personRepository.existsByDocumentAndUserNot(editData.getDocument(), user)) {
+                throw new ConflictException("El documento ya está registrado por otro usuario");
+            }
+            person.setDocument(editData.getDocument());
+        }
+        if (editData.getTelefono() != null) {
+            person.setTelefono(editData.getTelefono());
+        }
+        if (editData.getDireccion() != null) {
+            person.setDireccion(editData.getDireccion());
+        }
+        
+        personRepository.save(person);
     }
 }

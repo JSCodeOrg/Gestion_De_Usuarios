@@ -12,4 +12,6 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     boolean existsByDocument(String Document);
     Optional<Person> findByUser(User user); 
 
+    boolean existsByDocumentAndUserNot(String document, User user);
+
 }
