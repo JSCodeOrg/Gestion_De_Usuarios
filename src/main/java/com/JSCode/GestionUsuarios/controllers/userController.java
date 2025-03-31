@@ -68,6 +68,7 @@ public class UserController {
             try {
                 String verificationCode = VerificationCodeGenerator.generateVerificationCode();
                 recoverEmail.sendRecoverEmail(request.getMail(), verificationCode);
+                userService.saveVerificationCode(request.getMail(), verificationCode);
                 return ResponseEntity.ok(
                     new ApiResponse<>("Email verificado correctamente. Se han enviado las instrucciones a tu correo.", null, false, 200)
                 );

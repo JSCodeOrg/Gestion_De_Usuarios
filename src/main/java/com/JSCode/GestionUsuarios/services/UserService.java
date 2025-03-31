@@ -18,7 +18,9 @@ import com.JSCode.GestionUsuarios.exceptions.NotFoundException;
 import com.JSCode.GestionUsuarios.models.Person;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.models.UserPerRole;
+import com.JSCode.GestionUsuarios.models.UserRecoveryCode;
 import com.JSCode.GestionUsuarios.repositories.UserPerRoleRepository;
+import com.JSCode.GestionUsuarios.repositories.UserRecoveryCodeRepository;
 import com.JSCode.GestionUsuarios.repositories.PersonRepository;
 import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
@@ -50,7 +52,10 @@ public class UserService {
     private EmailService emailService;
 
     @Autowired
-    private VerificationCodeGenerator codeGenerator;
+    private VerificationCodeGenerator   codeGenerator;
+
+    @Autowired
+    private UserRecoveryCodeRepository recoveryCodeRepository;
     
     private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
@@ -130,7 +135,6 @@ public class UserService {
 
     public User DeactivationRequest(String email){
         User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-
         user.setDeleted_at(LocalDateTime.now());
         userRepository.save(user);
         return user;
@@ -140,7 +144,6 @@ public class UserService {
     public boolean emailExists(String email) {
         return userRepository.existsByMail(email);
     }
-
 
     public void updateUserData(Long userId, EditData editData) {
         User user = userRepository.findById(userId)
@@ -171,4 +174,17 @@ public class UserService {
         
         personRepository.save(person);
     }
+
+    public void saveVerificationCode(String mail, String verificationCode){
+        User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        recoveryCodeRepository.deleteByUser(user);
+        UserRecoveryCode recoveryCode = new UserRecoveryCode();
+        recoveryCode.setEmail(mail);
+        recoveryCode.setCode(passwordEncoder.encode(verificationCode));
+        recoveryCode.setUser(user);
+        recoveryCode.setExpiresAt(LocalDateTime.now().plusMinutes(60));
+        recoveryCodeRepository.save(recoveryCode);
+    
+    }
 }
+

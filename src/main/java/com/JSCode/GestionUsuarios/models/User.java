@@ -1,7 +1,6 @@
 package com.JSCode.GestionUsuarios.models;
-import java.sql.Date;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,4 +37,7 @@ public class User{
     
     @Column
     private LocalDateTime deleted_at;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserRecoveryCode recoveryCode;
 }
