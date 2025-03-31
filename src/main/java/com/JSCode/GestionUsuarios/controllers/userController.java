@@ -20,7 +20,7 @@ import com.JSCode.GestionUsuarios.services.UserService;
 import com.JSCode.GestionUsuarios.services.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
 import com.JSCode.GestionUsuarios.dto.VerificationRequest;
-
+import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
 
 @RestController
 @RequestMapping("/users")
@@ -98,7 +98,21 @@ public class UserController {
             new ApiResponse<>("Datos actualizados correctamente", null, false, 200)
         );
     }
+
+    @PostMapping("/verifyedition")
+    public ResponseEntity<ApiResponse<User>> verifyEdition(@RequestBody VerificationEditionRequest request){
+        if(request.getId() == null || request.getPassword() == null){
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere user_id y password", null, true, 400)
+            );
+        }
+        userService.verifyUserEdit(request.getId(), request.getPassword());
+        return ResponseEntity.ok(
+            new ApiResponse<>("Usuario verificado correctamente", false, 200)
+        );
+    }
 }
+
 
 
 

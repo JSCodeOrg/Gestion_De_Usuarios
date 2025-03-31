@@ -17,5 +17,6 @@ public class EditData {
     private String document;
     private String telefono;
     private String direccion;
+    private String fotoURL;
     
 }

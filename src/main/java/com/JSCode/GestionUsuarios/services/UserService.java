@@ -186,5 +186,13 @@ public class UserService {
         recoveryCodeRepository.save(recoveryCode);
     
     }
+
+    public User verifyUserEdit(Long id, String password){
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        if(!passwordEncoder.matches(password, user.getPassword())){
+            throw new BadRequestException("Contraseña incorrecta");
+        }
+        return user;
+    }
 }
 
