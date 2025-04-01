@@ -25,6 +25,7 @@ import com.JSCode.GestionUsuarios.repositories.PersonRepository;
 import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
 import com.JSCode.GestionUsuarios.services.Email.EmailService;
+import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
 import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
 
@@ -48,6 +49,9 @@ public class UserService {
 
     @Autowired
     private checkEmailService checkEmailService;
+
+    @Autowired
+    private RecoverEmail recoverEmail;
 
     @Autowired
     private EmailService emailService;
@@ -117,7 +121,6 @@ public class UserService {
         userPerRoleRepository.save(userPerRole);
 
         return user;
-
     }
 
     public boolean verifyUser(String email, String code) {
@@ -204,9 +207,10 @@ public class UserService {
 
         User user = new User();
         user.setMail(email);
-        user.setPassword(passwordEncoder.encode(PasswordGenerator.generatePassword()));
+        String provitionalpassword = PasswordGenerator.generatePassword();
+        user.setPassword(passwordEncoder.encode(provitionalpassword));
         user.setFirstLogin(true);
-        user.setVerified(false);
+        user.setVerified(true);
 
         userRepository.save(user);
 
@@ -225,6 +229,12 @@ public class UserService {
         userPerRole.setRole(rolesRepository.findById(role_id)
                 .orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
         userPerRoleRepository.save(userPerRole);
+
+        try {
+            recoverEmail.sendLoginData(email, provitionalpassword);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error al enviar el correo de recuperación", e);
+        }
 
         return user;
     }
