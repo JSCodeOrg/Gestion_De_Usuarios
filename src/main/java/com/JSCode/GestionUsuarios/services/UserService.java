@@ -1,8 +1,8 @@
 package com.JSCode.GestionUsuarios.services;
 
-
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import javax.mail.MessagingException;
@@ -26,6 +26,7 @@ import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
 import com.JSCode.GestionUsuarios.services.Email.EmailService;
 import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
+import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
 
 @Service
 public class UserService {
@@ -52,33 +53,33 @@ public class UserService {
     private EmailService emailService;
 
     @Autowired
-    private VerificationCodeGenerator   codeGenerator;
+    private VerificationCodeGenerator codeGenerator;
 
     @Autowired
     private UserRecoveryCodeRepository recoveryCodeRepository;
-    
+
     private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-        "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$"
-    );
+            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$");
 
     private void validatePassword(String password) {
         if (!PASSWORD_PATTERN.matcher(password).matches()) {
-            throw new BadRequestException("La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.");
+            throw new BadRequestException(
+                    "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.");
         }
     }
 
-    public User registerUser(UserRegisterDto data){
+    public User registerUser(UserRegisterDto data) {
 
-        if(userRepository.existsByMail(data.getMail())) {
+        if (userRepository.existsByMail(data.getMail())) {
             throw new ConflictException("El email ya está registrado");
         }
-        if(personRepository.existsByDocument(data.getDocument())) {
+        if (personRepository.existsByDocument(data.getDocument())) {
             throw new ConflictException("El documento ya está registrado");
         }
 
-        if(!checkEmailService.isValidEmail(data.getMail())){
+        if (!checkEmailService.isValidEmail(data.getMail())) {
             throw new BadRequestException("El email no es válido");
         }
 
@@ -87,41 +88,43 @@ public class UserService {
         String verificationCode = codeGenerator.generateVerificationCode();
         verificationCodes.put(data.getMail(), verificationCode);
 
-        try{
+        try {
             emailService.sendVerificationEmail(data.getMail(), verificationCode);
         } catch (MessagingException e) {
             throw new RuntimeException("Error al enviar el correo de verificacion");
         }
 
         User user = new User();
-            user.setMail(data.getMail());
-            user.setPassword(passwordEncoder.encode(data.getPassword()));
-            user.setVerified(false);
-            user = userRepository.save(user);
+        user.setMail(data.getMail());
+        user.setPassword(passwordEncoder.encode(data.getPassword()));
+        user.setVerified(false);
+        user = userRepository.save(user);
 
-            Person person = new Person();
-            person.setUser(user);
-            person.setDocument(data.getDocument());
-            person.setNombre(data.getNombre());
-            person.setApellido(data.getApellido());
-            person.setDireccion(data.getDireccion());
-            person.setTelefono(data.getTelefono());
-            person.setProfileImageUrl(null);
-            person = personRepository.save(person);
+        Person person = new Person();
+        person.setUser(user);
+        person.setDocument(data.getDocument());
+        person.setNombre(data.getNombre());
+        person.setApellido(data.getApellido());
+        person.setDireccion(data.getDireccion());
+        person.setTelefono(data.getTelefono());
+        person.setProfileImageUrl(null);
+        person = personRepository.save(person);
 
-            UserPerRole userPerRole = new UserPerRole();
-            userPerRole.setUser(user);
-            userPerRole.setRole(rolesRepository.findByName("usuario").orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
-            userPerRoleRepository.save(userPerRole);
+        UserPerRole userPerRole = new UserPerRole();
+        userPerRole.setUser(user);
+        userPerRole.setRole(rolesRepository.findByName("usuario")
+                .orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
+        userPerRoleRepository.save(userPerRole);
 
-            return user;
-    
+        return user;
+
     }
 
     public boolean verifyUser(String email, String code) {
         String savedCode = verificationCodes.get(email);
         if (savedCode != null && savedCode.equals(code)) {
-            User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+            User user = userRepository.findByMail(email)
+                    .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
             user.setVerified(true);
             userRepository.save(user);
@@ -133,25 +136,24 @@ public class UserService {
         return false;
     }
 
-    public User DeactivationRequest(String email){
+    public User DeactivationRequest(String email) {
         User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
         user.setDeleted_at(LocalDateTime.now());
         userRepository.save(user);
         return user;
     }
 
-    
     public boolean emailExists(String email) {
         return userRepository.existsByMail(email);
     }
 
     public void updateUserData(Long userId, EditData editData) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-        
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
         Person person = personRepository.findByUser(user)
-            .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
-             
+                .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+
         if (editData.getNombre() != null) {
             person.setNombre(editData.getNombre());
         }
@@ -159,7 +161,7 @@ public class UserService {
             person.setApellido(editData.getApellido());
         }
         if (editData.getDocument() != null) {
-            
+
             if (personRepository.existsByDocumentAndUserNot(editData.getDocument(), user)) {
                 throw new ConflictException("El documento ya está registrado por otro usuario");
             }
@@ -171,11 +173,11 @@ public class UserService {
         if (editData.getDireccion() != null) {
             person.setDireccion(editData.getDireccion());
         }
-        
+
         personRepository.save(person);
     }
 
-    public void saveVerificationCode(String mail, String verificationCode){
+    public void saveVerificationCode(String mail, String verificationCode) {
         User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
         recoveryCodeRepository.deleteByUser(user);
         UserRecoveryCode recoveryCode = new UserRecoveryCode();
@@ -184,15 +186,46 @@ public class UserService {
         recoveryCode.setUser(user);
         recoveryCode.setExpiresAt(LocalDateTime.now().plusMinutes(60));
         recoveryCodeRepository.save(recoveryCode);
-    
+
     }
 
-    public User verifyUserEdit(Long id, String password){
+    public User verifyUserEdit(Long id, String password) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-        if(!passwordEncoder.matches(password, user.getPassword())){
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadRequestException("Contraseña incorrecta");
         }
         return user;
     }
-}
 
+    public User createWorker(String email, Long role_id) {
+        if (userRepository.findByMail(email).isPresent()) {
+            throw new ConflictException("El email ya está registrado");
+        }
+
+        User user = new User();
+        user.setMail(email);
+        user.setPassword(passwordEncoder.encode(PasswordGenerator.generatePassword()));
+        user.setFirstLogin(true);
+        user.setVerified(false);
+
+        userRepository.save(user);
+
+        Person person = new Person();
+        person.setUser(user);
+        person.setDocument(UUID.randomUUID().toString());
+        person.setNombre("Nombre");
+        person.setApellido("Apellido");
+        person.setDireccion("Direccion");
+        person.setTelefono("telefono");
+        person.setProfileImageUrl(null);
+        personRepository.save(person);
+
+        UserPerRole userPerRole = new UserPerRole();
+        userPerRole.setUser(user);
+        userPerRole.setRole(rolesRepository.findById(role_id)
+                .orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
+        userPerRoleRepository.save(userPerRole);
+
+        return user;
+    }
+}

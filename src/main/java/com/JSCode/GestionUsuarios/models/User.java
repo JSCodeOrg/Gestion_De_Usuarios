@@ -30,6 +30,9 @@ public class User{
 
     @Column(name = "verified")
     private Boolean verified = false;
+
+    @Column(name = "first_login")
+    private Boolean firstLogin;
     
     public boolean isVerified() {
         return verified;

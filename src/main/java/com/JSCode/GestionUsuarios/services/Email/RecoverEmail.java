@@ -41,9 +41,10 @@ public class RecoverEmail {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("Instrucciones de restablecimineto enviadas a tu correo electronico");
+            message.setSubject("JSCode - Reestablecimiento de contraseña");
             
             String htmlContent = "<h2>Restablecimiento de contraseña</h2>"
+                    + "<p>Hola</p>"
                     + "<p>Hemos recibido una solicitud para restablecer tu contraseña.</p>"
                     + "<p>Tu código de recuperación es: <strong>" + verificationCode + "</strong></p>"
                     + "<p>Por favor, ingresa este código en nuestra aplicación para continuar con el proceso de restablecimiento.</p>"
