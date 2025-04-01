@@ -9,7 +9,6 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
@@ -26,6 +25,8 @@ import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
 import com.JSCode.GestionUsuarios.services.Email.EmailService;
 import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
+import com.JSCode.GestionUsuarios.security.JwtUtil;
+import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 
 @Service
 public class UserService {
@@ -53,6 +54,9 @@ public class UserService {
 
     @Autowired
     private VerificationCodeGenerator codeGenerator;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private UserRecoveryCodeRepository recoveryCodeRepository;
@@ -204,7 +208,7 @@ public class UserService {
         return user;
     }
 
-    public Boolean checkRecoveryCode(String mail, String code){
+    public RecoverResponse checkRecoveryCode(String mail, String code){
         User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
         recoveryCodeRepository.findByUser(user).ifPresent(recoveryCode -> {
@@ -217,7 +221,9 @@ public class UserService {
             }
         });
 
-        return true;
+        String recoveryToken = jwtUtil.generateToken(mail);
+
+        return new RecoverResponse(mail, recoveryToken);
     }
 }
 

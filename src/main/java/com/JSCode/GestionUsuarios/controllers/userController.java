@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.RecoverPassword;
@@ -23,6 +22,7 @@ import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
 import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoveryCodeDto;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
+import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 
 @RestController
 @RequestMapping("/users")
@@ -83,16 +83,16 @@ public class UserController {
     }
 
 @PostMapping("/checkrecoverycode")
-public ResponseEntity<ApiResponse<Void>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
+public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
     if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
         return ResponseEntity.badRequest().body(
             new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400)
         );
     }
-    boolean isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
-    if (isValid) {
+    RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
+    if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
         return ResponseEntity.ok(
-            new ApiResponse<>("Codigo de verificacion correcto", null, false, 200)
+             new ApiResponse<>("Codigo validado", isValid, false, 200)
         );
     } else {
         return ResponseEntity.badRequest().body(
