@@ -31,8 +31,8 @@ public class User{
     @Column(name = "verified")
     private Boolean verified = false;
 
-    @Column(name = "first_login")
-    private Boolean firstLogin;
+    @Column(name = "first_login", nullable = false)
+    private Boolean firstLogin = false;
     
     public boolean isVerified() {
         return verified;
