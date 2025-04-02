@@ -83,24 +83,24 @@ public class UserController {
         }
     }
 
-@PostMapping("/checkrecoverycode")
-public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
-    if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
-        return ResponseEntity.badRequest().body(
-            new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400)
-        );
+    @PostMapping("/checkrecoverycode")
+    public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
+        if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400)
+            );
+        }
+        RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
+        if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
+            return ResponseEntity.ok(
+                new ApiResponse<>("Codigo validado", isValid, false, 200)
+            );
+        } else {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Codigo de verificacion incorrecto", null, true, 400)
+            );
+        }
     }
-    RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
-    if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
-        return ResponseEntity.ok(
-             new ApiResponse<>("Codigo validado", isValid, false, 200)
-        );
-    } else {
-        return ResponseEntity.badRequest().body(
-            new ApiResponse<>("Codigo de verificacion incorrecto", null, true, 400)
-        );
-    }
-}
 
     @PostMapping("/edition")
     public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {
