@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
+import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
@@ -123,5 +124,18 @@ public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBo
         userService.verifyUserEdit(request.getId(), request.getPassword());
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario verificado correctamente", false, 200));
+    }
+
+    @PostMapping("/createuser")
+    public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData){
+        if (workerData.getEmail() == null || workerData.getRole_id() == null) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere email y rol", null, true, 400)
+            );
+        }
+        userService.createWorker(workerData.getEmail(), workerData.getRole_id());
+        return ResponseEntity.ok(
+            new ApiResponse<>("Usuario creado correctamente", null, false, 200)
+        );
     }
 }
