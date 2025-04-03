@@ -3,6 +3,7 @@ package com.JSCode.GestionUsuarios.services;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import javax.mail.MessagingException;
@@ -24,9 +25,11 @@ import com.JSCode.GestionUsuarios.repositories.PersonRepository;
 import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
 import com.JSCode.GestionUsuarios.services.Email.EmailService;
+import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
 import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 import com.JSCode.GestionUsuarios.security.JwtUtil;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
+import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
 
 @Service
 public class UserService {
@@ -48,6 +51,9 @@ public class UserService {
 
     @Autowired
     private checkEmailService checkEmailService;
+
+    @Autowired
+    private RecoverEmail recoverEmail;
 
     @Autowired
     private EmailService emailService;
@@ -226,12 +232,42 @@ public class UserService {
         return new RecoverResponse(mail, recoveryToken);
     }
 
-    public boolean updatePassword(String mail, String newPassword) {
-        User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-        validatePassword(newPassword);
-        user.setPassword(passwordEncoder.encode(newPassword));
+    public User createWorker(String email, Long role_id) {
+        if (userRepository.findByMail(email).isPresent()) {
+            throw new ConflictException("El email ya está registrado");
+        }
+
+        User user = new User();
+        user.setMail(email);
+        String provitionalpassword = PasswordGenerator.generatePassword();
+        user.setPassword(passwordEncoder.encode(provitionalpassword));
+        user.setFirstLogin(true);
+        user.setVerified(true);
+
         userRepository.save(user);
 
-        return true;
+        Person person = new Person();
+        person.setUser(user);
+        person.setDocument(UUID.randomUUID().toString());
+        person.setNombre("Nombre");
+        person.setApellido("Apellido");
+        person.setDireccion("Direccion");
+        person.setTelefono("telefono");
+        person.setProfileImageUrl(null);
+        personRepository.save(person);
+
+        UserPerRole userPerRole = new UserPerRole();
+        userPerRole.setUser(user);
+        userPerRole.setRole(rolesRepository.findById(role_id)
+                .orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
+        userPerRoleRepository.save(userPerRole);
+
+        try {
+            recoverEmail.sendLoginData(email, provitionalpassword);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error al enviar el correo de recuperación", e);
+        }
+
+        return user;
     }
 }

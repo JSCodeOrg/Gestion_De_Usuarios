@@ -34,6 +34,10 @@ public class AuthService {
             throw new DeactivatedUserException("Usuario desactivado");
         }
 
+        if(user.getVerified() == null){
+            throw new InvalidCredentialsException("Usuario no verificado");
+        }
+
         Person person = personRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCredentialsException("No se encontró información de la persona"));
 
@@ -43,6 +47,6 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(user.getMail());
 
-        return new AuthResponse(token, person.getNombre(), user.getMail(), user.getId());
+        return new AuthResponse(token, person.getNombre(), user.getMail(), user.getId(), user.getFirstLogin());
     }
 }

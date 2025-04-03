@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
+import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
+import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
@@ -114,14 +116,14 @@ public class UserController {
 
     }
 
-
     @PostMapping("/checkrecoverycode")
-    public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(
-            @RequestBody RecoveryCodeDto userRecoveryData) {
+    public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
         if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400));
+                new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400)
+            );
         }
+
         RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
         if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
             return ResponseEntity.ok(
@@ -131,7 +133,7 @@ public class UserController {
                     new ApiResponse<>("Codigo de verificacion incorrecto", null, true, 400));
         }
     }
-
+ 
     @PostMapping("/edition")
     public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {
         if (request.getUserId() == null) {
@@ -154,5 +156,18 @@ public class UserController {
         userService.verifyUserEdit(request.getId(), request.getPassword());
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario verificado correctamente", false, 200));
+    }
+
+    @PostMapping("/createuser")
+    public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData){
+        if (workerData.getEmail() == null || workerData.getRole_id() == null) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere email y rol", null, true, 400)
+            );
+        }
+        userService.createWorker(workerData.getEmail(), workerData.getRole_id());
+        return ResponseEntity.ok(
+            new ApiResponse<>("Usuario creado correctamente", null, false, 200)
+        );
     }
 }
