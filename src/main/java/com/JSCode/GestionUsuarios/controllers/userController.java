@@ -8,11 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
-import com.JSCode.GestionUsuarios.dto.RecoverPassword;
+import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
@@ -23,6 +24,8 @@ import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoveryCodeDto;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
+import com.JSCode.GestionUsuarios.dto.Password.NewPasswordDto;
+import com.JSCode.GestionUsuarios.security.JwtUtil;
 
 @RestController
 @RequestMapping("/users")
@@ -34,6 +37,9 @@ public class UserController {
 
     @Autowired
     private RecoverEmail recoverEmail;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<User>> register(@RequestBody UserRegisterDto data) {
@@ -82,24 +88,49 @@ public class UserController {
         }
     }
 
-@PostMapping("/checkrecoverycode")
-public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
-    if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
-        return ResponseEntity.badRequest().body(
-            new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400)
-        );
-    }
-    RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
-    if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
+    @PutMapping("/createnewpassword")
+    public ResponseEntity<ApiResponse<Void>> createNewPassword(@RequestBody NewPasswordDto newPasswordData,
+            @RequestHeader("Authorization") String recoveryToken) {
+        if (newPasswordData.getMail() == null || newPasswordData.getNewPassword() == null) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Se requiere mail y nueva contraseña", null, true, 400));
+        }
+
+        String cleanToken = recoveryToken.substring(7);
+        boolean tokenVerify = jwtUtil.isTokenValid(cleanToken);
+        if (!tokenVerify) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token inválido o expirado", null, true, 403));
+        }
+
+        boolean passwordChanged = userService.updatePassword(newPasswordData.getMail(), newPasswordData.getNewPassword());
+        if(!passwordChanged){
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Error al cambiar la contraseña", null, true, 400));
+        }
+
         return ResponseEntity.ok(
-             new ApiResponse<>("Codigo validado", isValid, false, 200)
-        );
-    } else {
-        return ResponseEntity.badRequest().body(
-            new ApiResponse<>("Codigo de verificacion incorrecto", null, true, 400)
-        );
+                new ApiResponse<>("Contraseña actualizada correctamente", null, false, 200));
+
     }
-}
+
+
+    @PostMapping("/checkrecoverycode")
+    public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(
+            @RequestBody RecoveryCodeDto userRecoveryData) {
+        if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400));
+        }
+        RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
+        if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
+            return ResponseEntity.ok(
+                    new ApiResponse<>("Codigo validado", isValid, false, 200));
+        } else {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Codigo de verificacion incorrecto", null, true, 400));
+        }
+    }
 
     @PostMapping("/edition")
     public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {

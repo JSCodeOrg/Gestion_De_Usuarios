@@ -208,7 +208,7 @@ public class UserService {
         return user;
     }
 
-    public RecoverResponse checkRecoveryCode(String mail, String code){
+    public RecoverResponse checkRecoveryCode(String mail, String code) {
         User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
         recoveryCodeRepository.findByUser(user).ifPresent(recoveryCode -> {
@@ -225,5 +225,13 @@ public class UserService {
 
         return new RecoverResponse(mail, recoveryToken);
     }
-}
 
+    public boolean updatePassword(String mail, String newPassword) {
+        User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        validatePassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return true;
+    }
+}
