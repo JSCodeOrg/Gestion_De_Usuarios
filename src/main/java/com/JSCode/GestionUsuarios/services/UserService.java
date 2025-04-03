@@ -270,4 +270,14 @@ public class UserService {
 
         return user;
     }
+
+    public boolean updatePassword(String mail, String newPassword) {
+        User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        validatePassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return true;
+        }
+    
 }
