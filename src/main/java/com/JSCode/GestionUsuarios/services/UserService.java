@@ -152,6 +152,13 @@ public class UserService {
         return user;
     }
 
+    public User ReactivationRequest(String email) {
+        User user = userRepository.findByMail(email).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        user.setDeleted_at(null);
+        userRepository.save(user);
+        return user;
+    }
+
     public boolean emailExists(String email) {
         return userRepository.existsByMail(email);
     }

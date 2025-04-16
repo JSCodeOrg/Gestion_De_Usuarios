@@ -17,6 +17,7 @@ import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
+import com.JSCode.GestionUsuarios.dto.ReactivationRequest;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
@@ -66,6 +67,12 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> requestAccountDeactivation(@RequestBody DeactivationRequest request) {
         userService.DeactivationRequest(request.getMail());
         return ResponseEntity.ok(new ApiResponse<>("Usuario desactivado exitosamente", null, false, 200));
+    }
+
+    @PostMapping("/reactivate")
+    public ResponseEntity<ApiResponse<String>> requestAccountDeactivation(@RequestBody ReactivationRequest request) {
+        userService.ReactivationRequest(request.getMail());
+        return ResponseEntity.ok(new ApiResponse<>("Usuario activado exitosamente", null, false, 200));
     }
 
     @PostMapping("/recoverpassword")
