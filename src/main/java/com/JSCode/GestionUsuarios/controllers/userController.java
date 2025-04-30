@@ -40,7 +40,7 @@ public class UserController {
         User user = userService.registerUser(data);
         return ResponseEntity.ok(
                 new ApiResponse<>("Registro exitoso", user, false, 200));
-    }
+    }   
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<Void>> verifyUser(@RequestBody VerificationRequest request) {
