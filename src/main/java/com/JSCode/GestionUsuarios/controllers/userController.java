@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +21,7 @@ import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
+import com.JSCode.GestionUsuarios.services.AuthService;
 import com.JSCode.GestionUsuarios.services.UserService;
 import com.JSCode.GestionUsuarios.services.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
@@ -30,6 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoveryCodeDto;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
+import com.JSCode.GestionUsuarios.dto.Auth.CheckLogin;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 import com.JSCode.GestionUsuarios.dto.Password.NewPasswordDto;
 import com.JSCode.GestionUsuarios.security.JwtUtil;
@@ -44,6 +47,9 @@ public class UserController {
 
     @Autowired
     private RecoverEmail recoverEmail;
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -198,4 +204,5 @@ public class UserController {
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
     }
+
 }

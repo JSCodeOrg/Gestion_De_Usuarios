@@ -1,8 +1,11 @@
 package com.JSCode.GestionUsuarios.services;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.Auth.AuthResponse;
+import com.JSCode.GestionUsuarios.dto.Auth.CheckLogin;
 import com.JSCode.GestionUsuarios.dto.Auth.UserCredentials;
 import com.JSCode.GestionUsuarios.exceptions.DeactivatedUserException;
 import com.JSCode.GestionUsuarios.exceptions.InvalidCredentialsException;
@@ -29,12 +32,12 @@ public class AuthService {
     public AuthResponse authenticate(UserCredentials userCredentials) {
         User user = userRepository.findByMail(userCredentials.getMail())
                 .orElseThrow(() -> new InvalidCredentialsException("Usuario no encontrado"));
-        
-        if(user.getDeleted_at() != null){
+
+        if (user.getDeleted_at() != null) {
             throw new DeactivatedUserException("Usuario desactivado");
         }
 
-        if(user.getVerified() == null){
+        if (user.getVerified() == null) {
             throw new InvalidCredentialsException("Usuario no verificado");
         }
 
@@ -47,6 +50,39 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(user.getMail());
 
-        return new AuthResponse(token, person.getNombre(), user.getMail(), user.getId(), user.getFirstLogin());
+        return new AuthResponse(token, user.getId(), user.getFirstLogin());
+    }
+
+    public ApiResponse<CheckLogin> checkLogin(String token) {
+
+        if (token == null || token.isEmpty()) {
+            return new ApiResponse<>("Token no proporcionado", null, true, 401); // Cambiado a 401 para error de autorización
+        }
+    
+        boolean isValid = jwtUtil.isTokenValid(token);
+        if (!isValid) {
+            return new ApiResponse<>("El token de autenticación no es válido", true, 401); // Cambiado a 401 para error de autorización
+        }
+    
+        String mail = jwtUtil.extractUsername(token);
+        User user = userRepository.findByMail(mail)
+                .orElseThrow(() -> new InvalidCredentialsException("Usuario no encontrado"));
+    
+        Person person = personRepository.findByUser(user)
+                .orElseThrow(() -> new InvalidCredentialsException("No se encontró información de la persona"));
+    
+        if (user.getDeleted_at() != null) {
+            throw new DeactivatedUserException("Usuario desactivado");
+        }
+    
+        if (user.getVerified() == null) {
+            throw new InvalidCredentialsException("Usuario no verificado");
+        }
+    
+        CheckLogin userData = new CheckLogin();
+        userData.setUser_id(user.getId()); 
+        userData.setProfileImgUrl(person.getProfileImageUrl());
+    
+        return new ApiResponse<>("Usuario autenticado con éxito", userData, false, 200);
     }
 }

@@ -131,9 +131,6 @@ public class UserService {
 
     public boolean verifyUser(String email, String code) {
         String savedCode = verificationCodes.get(email);
-        System.err.println("el email es:" +  email);
-        System.out.println("El codigo guardado es: " + savedCode);
-        System.out.println("El codigo ingresado es: " + code);
 
         if (savedCode != null && savedCode.equals(code)) {
             User user = userRepository.findByMail(email)
