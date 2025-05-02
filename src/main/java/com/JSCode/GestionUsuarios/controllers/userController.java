@@ -22,6 +22,10 @@ import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
 import com.JSCode.GestionUsuarios.services.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+
 import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoveryCodeDto;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
@@ -48,7 +52,7 @@ public class UserController {
         User user = userService.registerUser(data);
         return ResponseEntity.ok(
                 new ApiResponse<>("Registro exitoso", user, false, 200));
-    }   
+    }
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<Void>> verifyUser(@RequestBody VerificationRequest request) {
@@ -69,13 +73,15 @@ public class UserController {
     }
 
     @PostMapping("/recoverpassword")
-    public ResponseEntity<ApiResponse<Void>> emailExists(@RequestBody RecoverPassword request) {
+    public ResponseEntity<ApiResponse<Void>> emailExists(@RequestBody RecoverPassword request,
+            HttpServletResponse response) {
         boolean existUser = userService.emailExists(request.getMail());
         if (existUser) {
             try {
                 String verificationCode = VerificationCodeGenerator.generateVerificationCode();
                 recoverEmail.sendRecoverEmail(request.getMail(), verificationCode);
                 userService.saveVerificationCode(request.getMail(), verificationCode);
+                System.err.println("El codigo es: " + verificationCode);
                 return ResponseEntity.ok(
                         new ApiResponse<>(
                                 "Email verificado correctamente. Se han enviado las instrucciones a tu correo.", null,
@@ -105,8 +111,9 @@ public class UserController {
                     new ApiResponse<>("Token inválido o expirado", null, true, 403));
         }
 
-        boolean passwordChanged = userService.updatePassword(newPasswordData.getMail(), newPasswordData.getNewPassword());
-        if(!passwordChanged){
+        boolean passwordChanged = userService.updatePassword(newPasswordData.getMail(),
+                newPasswordData.getNewPassword());
+        if (!passwordChanged) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Error al cambiar la contraseña", null, true, 400));
         }
@@ -117,12 +124,18 @@ public class UserController {
     }
 
     @PostMapping("/checkrecoverycode")
-    public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData) {
+    public ResponseEntity<ApiResponse<RecoverResponse>> checkRecoveryCode(@RequestBody RecoveryCodeDto userRecoveryData,
+            HttpServletResponse response) {
         if (userRecoveryData.getMail() == null || userRecoveryData.getCode() == null) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400)
-            );
+                    new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400));
         }
+        String RecoveryToken = jwtUtil.generateRecoveryToken(userRecoveryData.getMail());
+        Cookie cookie = new Cookie("recover_token", RecoveryToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(1 * 30 * 60);
+        response.addCookie(cookie);
 
         RecoverResponse isValid = userService.checkRecoveryCode(userRecoveryData.getMail(), userRecoveryData.getCode());
         if (isValid.getMail() != null && isValid.getRecoveryToken() != null) {
@@ -133,7 +146,7 @@ public class UserController {
                     new ApiResponse<>("Codigo de verificacion incorrecto", null, true, 400));
         }
     }
- 
+
     @PostMapping("/edition")
     public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {
         if (request.getUserId() == null) {
@@ -159,15 +172,13 @@ public class UserController {
     }
 
     @PostMapping("/createuser")
-    public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData){
+    public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData) {
         if (workerData.getEmail() == null || workerData.getRole_id() == null) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Se requiere email y rol", null, true, 400)
-            );
+                    new ApiResponse<>("Se requiere email y rol", null, true, 400));
         }
         userService.createWorker(workerData.getEmail(), workerData.getRole_id());
         return ResponseEntity.ok(
-            new ApiResponse<>("Usuario creado correctamente", null, false, 200)
-        );
+                new ApiResponse<>("Usuario creado correctamente", null, false, 200));
     }
 }

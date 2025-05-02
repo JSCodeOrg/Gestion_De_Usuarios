@@ -24,6 +24,15 @@ public class JwtUtil {
                 .compact();
     }
 
+    public String generateRecoveryToken(String email){
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + (EXPIRATION_MS/2)))
+                .signWith(SECRET_KEY, Jwts.SIG.HS256)
+                .compact();
+    }
+
     public String extractUsername(String token) {
         return Jwts.parser()
                 .verifyWith(SECRET_KEY)
