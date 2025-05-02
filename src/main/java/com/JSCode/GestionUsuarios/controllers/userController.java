@@ -81,7 +81,6 @@ public class UserController {
                 String verificationCode = VerificationCodeGenerator.generateVerificationCode();
                 recoverEmail.sendRecoverEmail(request.getMail(), verificationCode);
                 userService.saveVerificationCode(request.getMail(), verificationCode);
-                System.err.println("El codigo es: " + verificationCode);
                 return ResponseEntity.ok(
                         new ApiResponse<>(
                                 "Email verificado correctamente. Se han enviado las instrucciones a tu correo.", null,
@@ -127,7 +126,7 @@ public class UserController {
 
         boolean passwordChanged = userService.updatePassword(userEmail,
                 newPasswordData.getNewPassword());
-                
+
         if (!passwordChanged) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Error al cambiar la contraseña", null, true, 400));
