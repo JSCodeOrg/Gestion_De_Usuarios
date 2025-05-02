@@ -6,6 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NewPasswordDto{
-    private String mail;
     private String newPassword;
 }

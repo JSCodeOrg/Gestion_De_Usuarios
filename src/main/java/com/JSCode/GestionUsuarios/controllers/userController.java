@@ -5,6 +5,7 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,8 +74,7 @@ public class UserController {
     }
 
     @PostMapping("/recoverpassword")
-    public ResponseEntity<ApiResponse<Void>> emailExists(@RequestBody RecoverPassword request,
-            HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> emailExists(@RequestBody RecoverPassword request) {
         boolean existUser = userService.emailExists(request.getMail());
         if (existUser) {
             try {
@@ -98,29 +98,47 @@ public class UserController {
 
     @PutMapping("/createnewpassword")
     public ResponseEntity<ApiResponse<Void>> createNewPassword(@RequestBody NewPasswordDto newPasswordData,
-            @RequestHeader("Authorization") String recoveryToken) {
-        if (newPasswordData.getMail() == null || newPasswordData.getNewPassword() == null) {
+            @CookieValue("recover_token") String recoveryToken, HttpServletResponse response) {
+            
+        if (newPasswordData.getNewPassword() == null) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Se requiere mail y nueva contraseña", null, true, 400));
+                    new ApiResponse<>("Se requiere la nueva contraseña", null, true, 400));
+        }
+        if(recoveryToken == null){
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token de recuperación no encontrado", null, true, 400));
         }
 
-        String cleanToken = recoveryToken.substring(7);
-        boolean tokenVerify = jwtUtil.isTokenValid(cleanToken);
+        boolean tokenVerify = jwtUtil.isTokenValid(recoveryToken);
         if (!tokenVerify) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token inválido o expirado", null, true, 403));
         }
 
-        boolean passwordChanged = userService.updatePassword(newPasswordData.getMail(),
+        String userEmail = jwtUtil.extractUsername(recoveryToken);
+        if (userEmail == null) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token inválido o expirado", null, true, 403));
+        }
+        if (!userService.emailExists(userEmail)) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Usuario no registrado", null, true, 400));
+        }
+
+        boolean passwordChanged = userService.updatePassword(userEmail,
                 newPasswordData.getNewPassword());
+                
         if (!passwordChanged) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Error al cambiar la contraseña", null, true, 400));
         }
+        Cookie cookie = new Cookie("recover_token", "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/"); 
+        response.addCookie(cookie);
 
         return ResponseEntity.ok(
                 new ApiResponse<>("Contraseña actualizada correctamente", null, false, 200));
-
     }
 
     @PostMapping("/checkrecoverycode")
