@@ -25,6 +25,9 @@ email:
   auth: true
   debug: false
 
+frontend:
+  frontendUrl: ${FRONTEND_BASE_URL}
+
 app:
   verification:
     code:

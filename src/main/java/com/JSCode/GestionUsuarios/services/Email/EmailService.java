@@ -10,10 +10,24 @@ import java.util.Properties;
 @Service
 public class EmailService {
 
+    @Value("${email.username}")
+    private String username;
+
+    @Value("${email.password}")
+    private String password;
+
+    @Value("${email.host}")
+    private String host;
+
+    @Value("${email.port}")
+    private String port;
+
+    @Value("${frontend.frontendUrl}")
+    private String frontendUrl;
+
 
     public void sendVerificationEmail(String toEmail, String verificationToken) throws MessagingException {
-      //TODO: Modificar dotenv, no sé de donde salen los values de arriba.
-        String verificationLink = "http://localhost:4200/verify?token=" + verificationToken;
+        String verificationLink = frontendUrl + "/verify?token=" + verificationToken;
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
