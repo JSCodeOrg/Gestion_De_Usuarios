@@ -16,8 +16,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.JSCode.GestionUsuarios.controllers.UserController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
-import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
+import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
 import com.JSCode.GestionUsuarios.exceptions.NotFoundException;

@@ -12,25 +12,27 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
+import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
-import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.AuthService;
 import com.JSCode.GestionUsuarios.services.UserService;
-import com.JSCode.GestionUsuarios.services.VerificationCodeGenerator;
-import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
+import com.JSCode.GestionUsuarios.services.email.RecoverEmail;
+import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
+import com.JSCode.GestionUsuarios.utils.VerificationStatus;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.JSCode.GestionUsuarios.dto.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoveryCodeDto;
+import com.JSCode.GestionUsuarios.dto.Auth.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
 import com.JSCode.GestionUsuarios.dto.Auth.CheckLogin;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
@@ -62,14 +64,14 @@ public class UserController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<Void>> verifyUser(@RequestBody VerificationRequest request) {
-        boolean isVerified = userService.verifyUser(request.getMail(), request.getCode());
-        if (isVerified) {
+    public ResponseEntity<ApiResponse<Void>> verifyUser(@RequestParam("token") String token) {
+        VerificationStatus isVerified = userService.verifyUser(token);
+        if (isVerified == VerificationStatus.ALREADY_VERIFIED) {
             return ResponseEntity.ok(
-                    new ApiResponse<>("Email verificado correctamente", null, false, 200));
+                    new ApiResponse<>("La cuenta ya había sido verificada", null, false, 200));
         } else {
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Codigo de verificacion invalido", null, true, 400));
+            return ResponseEntity.ok(
+                    new ApiResponse<>("Cuenta activada correctamente", null, true, 200));
         }
     }
 

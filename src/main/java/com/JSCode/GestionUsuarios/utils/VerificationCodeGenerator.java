@@ -1,4 +1,4 @@
-package com.JSCode.GestionUsuarios.services;
+package com.JSCode.GestionUsuarios.utils;
 
 import org.springframework.stereotype.Service;
 import java.util.Random;

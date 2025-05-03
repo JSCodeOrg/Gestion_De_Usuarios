@@ -1,4 +1,4 @@
-package com.JSCode.GestionUsuarios.dto;
+package com.JSCode.GestionUsuarios.dto.register;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

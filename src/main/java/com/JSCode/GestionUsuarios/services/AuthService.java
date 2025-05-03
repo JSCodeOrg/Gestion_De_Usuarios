@@ -9,6 +9,7 @@ import com.JSCode.GestionUsuarios.dto.Auth.CheckLogin;
 import com.JSCode.GestionUsuarios.dto.Auth.UserCredentials;
 import com.JSCode.GestionUsuarios.exceptions.DeactivatedUserException;
 import com.JSCode.GestionUsuarios.exceptions.InvalidCredentialsException;
+import com.JSCode.GestionUsuarios.exceptions.UserNotVerifiedException;
 import com.JSCode.GestionUsuarios.models.Person;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.repositories.PersonRepository;
@@ -38,17 +39,13 @@ public class AuthService {
         }
 
         if(!user.isVerified()){
-            throw new DeactivatedUserException("Usuario no verificado");
+            throw new UserNotVerifiedException("Usuario no verificado");
         }
 
         boolean isFirstLogin = user.getFirstLogin();
         if(isFirstLogin){
             user.setFirstLogin(false);
             userRepository.save(user);
-        }
-        
-        if (user.getVerified() == null) {
-            throw new InvalidCredentialsException("Usuario no verificado");
         }
 
         if (!passwordEncoder.matches(userCredentials.getPassword(), user.getPassword())) {

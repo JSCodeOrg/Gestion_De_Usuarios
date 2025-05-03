@@ -57,7 +57,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:4200", "http://192.168.0.6:4200"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // Para que funcione con cookies o auth headers
+        config.setAllowCredentials(true); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

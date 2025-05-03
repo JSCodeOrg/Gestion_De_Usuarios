@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.JSCode.GestionUsuarios.dto.EditData;
-import com.JSCode.GestionUsuarios.dto.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
 import com.JSCode.GestionUsuarios.exceptions.NotFoundException;
@@ -24,12 +23,15 @@ import com.JSCode.GestionUsuarios.repositories.UserRecoveryCodeRepository;
 import com.JSCode.GestionUsuarios.repositories.PersonRepository;
 import com.JSCode.GestionUsuarios.repositories.RolesRepository;
 import com.JSCode.GestionUsuarios.repositories.UserRepository;
-import com.JSCode.GestionUsuarios.services.Email.EmailService;
-import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
-import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 import com.JSCode.GestionUsuarios.security.JwtUtil;
+import com.JSCode.GestionUsuarios.services.email.EmailService;
+import com.JSCode.GestionUsuarios.services.email.RecoverEmail;
+import com.JSCode.GestionUsuarios.services.email.checkEmailService;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
+import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
+import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
+import com.JSCode.GestionUsuarios.utils.VerificationStatus;
 
 @Service
 public class UserService {
@@ -67,8 +69,6 @@ public class UserService {
     @Autowired
     private UserRecoveryCodeRepository recoveryCodeRepository;
 
-    private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
-
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
             "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$");
 
@@ -94,11 +94,11 @@ public class UserService {
 
         validatePassword(data.getPassword());
 
-        String verificationCode = codeGenerator.generateVerificationCode();
-        verificationCodes.put(data.getMail(), verificationCode);
-
+        String verificationToken = jwtUtil.generateVerificationToken(data.getMail());
+        
         try {
-            emailService.sendVerificationEmail(data.getMail(), verificationCode);
+            emailService.sendVerificationEmail(data.getMail(), verificationToken);
+
         } catch (MessagingException e) {
             throw new RuntimeException("Error al enviar el correo de verificacion");
         }
@@ -130,21 +130,21 @@ public class UserService {
 
     }
 
-    public boolean verifyUser(String email, String code) {
-        String savedCode = verificationCodes.get(email);
+    public VerificationStatus verifyUser(String userToken) {
 
-        if (savedCode != null && savedCode.equals(code)) {
-            User user = userRepository.findByMail(email)
-                    .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-            user.setVerified(true);
-            userRepository.save(user);
+        String email = jwtUtil.extractUsername(userToken);
 
-            verificationCodes.remove(email);
-            return true;
+        User user = this.userRepository.findByMail(email).orElseThrow(()-> new NotFoundException("Usuario no encontrado"));
+
+        if(user.getVerified()){
+            return VerificationStatus.ALREADY_VERIFIED;
         }
 
-        return false;
+        user.setVerified(true);
+        this.userRepository.save(user);
+
+        return VerificationStatus.VERIFIED_SUCCESS;
     }
 
     public User DeactivationRequest(String email) {

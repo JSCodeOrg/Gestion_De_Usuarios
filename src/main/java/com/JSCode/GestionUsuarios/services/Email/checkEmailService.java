@@ -1,4 +1,4 @@
-package com.JSCode.GestionUsuarios.services.Email;
+package com.JSCode.GestionUsuarios.services.email;
 
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;

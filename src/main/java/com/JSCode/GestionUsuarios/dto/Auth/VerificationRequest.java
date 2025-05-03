@@ -1,4 +1,4 @@
-package com.JSCode.GestionUsuarios.dto;
+package com.JSCode.GestionUsuarios.dto.Auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +10,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VerificationRequest {
-    private String mail;
-    private String code;
+    private String userToken;
 }
