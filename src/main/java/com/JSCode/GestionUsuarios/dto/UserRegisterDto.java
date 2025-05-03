@@ -30,7 +30,5 @@ public class UserRegisterDto {
 
     private String profileImageUrl;
 
-    @NotBlank
-    private String roleName;
 }
     

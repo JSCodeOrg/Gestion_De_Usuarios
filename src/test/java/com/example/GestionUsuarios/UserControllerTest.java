@@ -47,7 +47,6 @@ class UserControllerTest {
         dto.setApellido("Perez");
         dto.setDireccion("Calle Falsa 123");
         dto.setTelefono("9384982934");
-        dto.setRoleName("usuario");
 
         User mockUser = new User();
         mockUser.setMail(dto.getMail());
@@ -92,7 +91,6 @@ class UserControllerTest {
         dto.setApellido("Perez");
         dto.setDireccion("Calle Falsa 123");
         dto.setTelefono("9384982934");
-        dto.setRoleName("usuario");
 
         when(userService.registerUser(any(UserRegisterDto.class)))
                 .thenThrow(new BadRequestException("El email no es válido"));

@@ -12,5 +12,4 @@ import lombok.Setter;
 public class UserCredentials {
     private String mail;
     private String password;
-
 }

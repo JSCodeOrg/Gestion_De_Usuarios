@@ -37,20 +37,29 @@ public class AuthService {
             throw new DeactivatedUserException("Usuario desactivado");
         }
 
+        if(!user.isVerified()){
+            throw new DeactivatedUserException("Usuario no verificado");
+        }
+
+        boolean isFirstLogin = user.getFirstLogin();
+        if(isFirstLogin){
+            user.setFirstLogin(false);
+            userRepository.save(user);
+        }
+        
         if (user.getVerified() == null) {
             throw new InvalidCredentialsException("Usuario no verificado");
         }
-
-        Person person = personRepository.findByUser(user)
-                .orElseThrow(() -> new InvalidCredentialsException("No se encontró información de la persona"));
 
         if (!passwordEncoder.matches(userCredentials.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Nombre de usuario o contraseña incorrectos");
         }
 
+        user.setFirstLogin(false);
+
         String token = jwtUtil.generateToken(user.getMail());
 
-        return new AuthResponse(token, user.getId(), user.getFirstLogin());
+        return new AuthResponse(token, user.getId(), isFirstLogin);
     }
 
     public ApiResponse<CheckLogin> checkLogin(String token) {
