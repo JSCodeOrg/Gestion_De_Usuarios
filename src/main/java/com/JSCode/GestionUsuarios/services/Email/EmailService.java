@@ -25,9 +25,14 @@ public class EmailService {
     @Value("${frontend.frontendUrl}")
     private String frontendUrl;
 
+    @Value("${frontend.frontendNetUrl}")
+    private String frontendNetUrl;
+
+    
+
 
     public void sendVerificationEmail(String toEmail, String verificationToken) throws MessagingException {
-        String verificationLink = frontendUrl + "/verify?token=" + verificationToken;
+        String verificationLink = frontendNetUrl + "/verify?token=" + verificationToken;
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");

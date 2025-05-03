@@ -27,6 +27,7 @@ email:
 
 frontend:
   frontendUrl: ${FRONTEND_BASE_URL}
+  frontendNetUrl: ${FRONTEND_BASE_NET_URL}
 
 app:
   verification:
