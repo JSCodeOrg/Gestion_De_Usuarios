@@ -83,7 +83,8 @@ public class UserController {
 
     @PostMapping("/recoverpassword")
     public ResponseEntity<ApiResponse<Void>> emailExists(@RequestBody RecoverPassword request) {
-        boolean existUser = userService.emailExists(request.getMail());
+        boolean existUser = userService.userExistsByMail(request.getMail());
+
         if (existUser) {
             try {
                 String verificationCode = VerificationCodeGenerator.generateVerificationCode();
@@ -106,12 +107,12 @@ public class UserController {
     @PutMapping("/createnewpassword")
     public ResponseEntity<ApiResponse<Void>> createNewPassword(@RequestBody NewPasswordDto newPasswordData,
             @CookieValue("recover_token") String recoveryToken, HttpServletResponse response) {
-            
+
         if (newPasswordData.getNewPassword() == null) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Se requiere la nueva contraseña", null, true, 400));
         }
-        if(recoveryToken == null){
+        if (recoveryToken == null) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token de recuperación no encontrado", null, true, 400));
         }
@@ -122,17 +123,20 @@ public class UserController {
                     new ApiResponse<>("Token inválido o expirado", null, true, 403));
         }
 
-        String userEmail = jwtUtil.extractUsername(recoveryToken);
-        if (userEmail == null) {
+        Long userId;
+        try {
+            userId = Long.parseLong(jwtUtil.extractUsername(recoveryToken));
+        } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token inválido o expirado", null, true, 403));
+                    new ApiResponse<>("Token inválido o manipulado", null, true, 403));
         }
-        if (!userService.emailExists(userEmail)) {
+
+        if (!userService.userExistsById(userId)) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Usuario no registrado", null, true, 400));
         }
 
-        boolean passwordChanged = userService.updatePassword(userEmail,
+        boolean passwordChanged = userService.updatePassword(userId,
                 newPasswordData.getNewPassword());
 
         if (!passwordChanged) {
@@ -141,7 +145,7 @@ public class UserController {
         }
         Cookie cookie = new Cookie("recover_token", "");
         cookie.setMaxAge(0);
-        cookie.setPath("/"); 
+        cookie.setPath("/");
         response.addCookie(cookie);
 
         return ResponseEntity.ok(
@@ -155,8 +159,10 @@ public class UserController {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Se requiere mail y codigo de verificacion", null, true, 400));
         }
-        String RecoveryToken = jwtUtil.generateRecoveryToken(userRecoveryData.getMail());
-        Cookie cookie = new Cookie("recover_token", RecoveryToken);
+
+        String generateRecoveryToken = this.userService.generateRecoveryToken(userRecoveryData.getMail());
+
+        Cookie cookie = new Cookie("recover_token", generateRecoveryToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(1 * 30 * 60);

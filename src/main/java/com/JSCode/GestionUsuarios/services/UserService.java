@@ -131,8 +131,7 @@ public class UserService {
     }
 
     public VerificationStatus verifyUser(String userToken) {
-
-
+//todo: cambiar email por userId
         String email = jwtUtil.extractUsername(userToken);
 
         User user = this.userRepository.findByMail(email).orElseThrow(()-> new NotFoundException("Usuario no encontrado"));
@@ -154,8 +153,12 @@ public class UserService {
         return user;
     }
 
-    public boolean emailExists(String email) {
-        return userRepository.existsByMail(email);
+    public boolean userExistsById(Long userId) {
+        return userRepository.existsById(userId);
+    }
+
+    public boolean userExistsByMail(String userMail) {
+        return userRepository.existsByMail(userMail);
     }
 
     public void updateUserData(Long userId, EditData editData) {
@@ -229,9 +232,21 @@ public class UserService {
             }
         });
 
-        String recoveryToken = jwtUtil.generateToken(mail);
+        String recoveryToken = jwtUtil.generateRecoveryToken(user.getId());
 
         return new RecoverResponse(mail, recoveryToken);
+    }
+
+    public String generateRecoveryToken(String email){
+
+        User user = this.userRepository.findByMail(email).orElseThrow(()-> new NotFoundException("Usuario no encontrado"));
+
+        Long userId = user.getId();
+
+        String token = jwtUtil.generateRecoveryToken(userId);
+
+        return token;
+
     }
 
     public User createWorker(String email, Long role_id) {
@@ -273,8 +288,8 @@ public class UserService {
         return user;
     }
 
-    public boolean updatePassword(String mail, String newPassword) {
-        User user = userRepository.findByMail(mail).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+    public boolean updatePassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
         validatePassword(newPassword);
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);

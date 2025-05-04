@@ -5,8 +5,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import java.util.Date;
+import java.util.List;
+
 import javax.crypto.SecretKey;
 
 @Component
@@ -21,18 +22,19 @@ public class JwtUtil {
 
     private static final long EXPIRATION_MS = 3600000;
 
-    public String generateToken(String username) {
+    public String generateToken(Long userId, List<Long> roleIds) {
         return Jwts.builder()
-                .subject(username)
+                .subject(userId.toString())
+                .claim("roles", roleIds)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 
-    public String generateRecoveryToken(String email){
+    public String generateRecoveryToken(Long id){
         return Jwts.builder()
-                .subject(email)
+                .subject(id.toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + (EXPIRATION_MS/2)))
                 .signWith(secretKey, Jwts.SIG.HS256)
