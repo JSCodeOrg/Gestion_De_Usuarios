@@ -5,12 +5,11 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +18,6 @@ import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
-import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.AuthService;
@@ -27,14 +25,10 @@ import com.JSCode.GestionUsuarios.services.UserService;
 import com.JSCode.GestionUsuarios.services.email.RecoverEmail;
 import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.utils.VerificationStatus;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-
 import com.JSCode.GestionUsuarios.dto.Auth.RecoveryCodeDto;
-import com.JSCode.GestionUsuarios.dto.Auth.VerificationRequest;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
-import com.JSCode.GestionUsuarios.dto.Auth.CheckLogin;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 import com.JSCode.GestionUsuarios.dto.Password.NewPasswordDto;
 import com.JSCode.GestionUsuarios.security.JwtUtil;
@@ -202,13 +196,17 @@ public class UserController {
                 new ApiResponse<>("Usuario verificado correctamente", false, 200));
     }
 
+    @PreAuthorize("hasRole('usuario')")
     @PostMapping("/createuser")
     public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData) {
+
         if (workerData.getEmail() == null || workerData.getRole_id() == null) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Se requiere email y rol", null, true, 400));
         }
-        userService.createWorker(workerData.getEmail(), workerData.getRole_id());
+        
+        userService.createWorker(workerData);
+        
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
     }

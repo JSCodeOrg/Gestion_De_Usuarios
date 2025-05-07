@@ -1,6 +1,7 @@
 package com.JSCode.GestionUsuarios.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.JSCode.GestionUsuarios.dto.EditData;
+import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
 import com.JSCode.GestionUsuarios.exceptions.NotFoundException;
@@ -249,7 +251,14 @@ public class UserService {
 
     }
 
-    public User createWorker(String email, Long role_id) {
+    public String createWorker(WorkerRegisterDto workerData) {
+
+
+        return "Hola";
+
+        /* 
+
+        
         if (userRepository.findByMail(email).isPresent()) {
             throw new ConflictException("El email ya está registrado");
         }
@@ -286,6 +295,8 @@ public class UserService {
         }
 
         return user;
+
+        */
     }
 
     public boolean updatePassword(Long userId, String newPassword) {
@@ -295,6 +306,7 @@ public class UserService {
         userRepository.save(user);
 
         return true;
+
         }
     
 }

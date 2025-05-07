@@ -1,4 +1,5 @@
 package com.JSCode.GestionUsuarios.security;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
@@ -7,6 +8,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
@@ -32,22 +34,22 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRecoveryToken(Long id){
+    public String generateRecoveryToken(Long id) {
         return Jwts.builder()
                 .subject(id.toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + (EXPIRATION_MS/2)))
+                .expiration(new Date(System.currentTimeMillis() + (EXPIRATION_MS / 2)))
                 .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 
-    public String generateVerificationToken(String email){
+    public String generateVerificationToken(String email) {
         return Jwts.builder()
-        .subject(email)
-        .issuedAt(new Date())
-        .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-        .signWith(secretKey, Jwts.SIG.HS256)
-        .compact();
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
     }
 
     public String extractUsername(String token) {
@@ -65,10 +67,21 @@ public class JwtUtil {
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token);
-            
+
             return !claims.getPayload().getExpiration().before(new Date());
         } catch (JwtException e) {
-            return false; 
+            return false;
         }
     }
-}       
+    public List<Integer> extractRoles(String token) {
+        Jws<Claims> claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);
+
+        List<?> rawRoles = claims.getPayload().get("roles", List.class);
+        return rawRoles.stream()
+                .map(role -> ((Number) role).intValue())
+                .collect(Collectors.toList());
+    }
+}

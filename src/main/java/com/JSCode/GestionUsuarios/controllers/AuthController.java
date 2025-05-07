@@ -30,7 +30,6 @@ public class AuthController {
         System.out.println(userCredentials.getPassword());
         AuthResponse authResponse = authService.authenticate(userCredentials);
         return ResponseEntity.ok(authResponse);
-
     }
 
     @GetMapping("/me")
