@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
+import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.EditData;
@@ -172,6 +174,8 @@ public class UserController {
         }
     }
 
+    /* 
+
     @PostMapping("/edition")
     public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {
         if (request.getUserId() == null) {
@@ -185,6 +189,8 @@ public class UserController {
                 new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
     }
 
+    */
+    
     @PostMapping("/verifyedition")
     public ResponseEntity<ApiResponse<User>> verifyEdition(@RequestBody VerificationEditionRequest request) {
         if (request.getId() == null || request.getPassword() == null) {
@@ -196,7 +202,7 @@ public class UserController {
                 new ApiResponse<>("Usuario verificado correctamente", false, 200));
     }
 
-    @PreAuthorize("hasRole('usuario')")
+    @PreAuthorize("hasRole('administrador')")
     @PostMapping("/createuser")
     public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData) {
 
@@ -209,6 +215,36 @@ public class UserController {
         
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
+    }
+
+    @PutMapping("/updateinfo")
+    public ResponseEntity<ApiResponse<Void>> updateUserInfo(@RequestBody EditDataDTO newData, @RequestHeader("Authorization") String token){
+        if(newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null || newData.getTelefono() == null || newData.getDocument() == null || newData.getPassword() == null){
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere nombre, apellido y mail", null, true, 400));
+        }
+        if(token == null || token.isEmpty()){
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Token no proporcionado", null, true, 400));
+        }
+        if(!token.startsWith("Bearer ")){
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Token en formato incorrecto", null, true, 400));
+        }
+
+        if(!jwtUtil.isTokenValid(token.substring(7))){
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Token inválido o expirado", null, true, 400));
+        }
+
+        Boolean update = userService.updateUserData(newData, token.substring(7));
+
+        if(!update){
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Error al actualizar los datos", null, true, 400));
+        }
+        return ResponseEntity.ok(
+            new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
     }
 
 }

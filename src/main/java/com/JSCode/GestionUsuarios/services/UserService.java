@@ -1,17 +1,13 @@
 package com.JSCode.GestionUsuarios.services;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
@@ -30,6 +26,7 @@ import com.JSCode.GestionUsuarios.services.email.EmailService;
 import com.JSCode.GestionUsuarios.services.email.RecoverEmail;
 import com.JSCode.GestionUsuarios.services.email.checkEmailService;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
+import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
 import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
@@ -97,7 +94,7 @@ public class UserService {
         validatePassword(data.getPassword());
 
         String verificationToken = jwtUtil.generateVerificationToken(data.getMail());
-        
+
         try {
             emailService.sendVerificationEmail(data.getMail(), verificationToken);
 
@@ -133,12 +130,13 @@ public class UserService {
     }
 
     public VerificationStatus verifyUser(String userToken) {
-//todo: cambiar email por userId
+        // todo: cambiar email por userId
         String email = jwtUtil.extractUsername(userToken);
 
-        User user = this.userRepository.findByMail(email).orElseThrow(()-> new NotFoundException("Usuario no encontrado"));
+        User user = this.userRepository.findByMail(email)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-        if(user.getVerified()){
+        if (user.getVerified()) {
             return VerificationStatus.ALREADY_VERIFIED;
         }
 
@@ -163,34 +161,37 @@ public class UserService {
         return userRepository.existsByMail(userMail);
     }
 
-    public void updateUserData(Long userId, EditData editData) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+    public boolean updateUserData(EditDataDTO editData, String token) {
 
-        Person person = personRepository.findByUser(user)
-                .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+        try {
+            Long userId = Long.parseLong(jwtUtil.extractUsername(token));
 
-        if (editData.getNombre() != null) {
+            User user = this.userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+            user.setPassword(passwordEncoder.encode(editData.getPassword()));
+            userRepository.save(user);
+
+            Person person = personRepository.findByUser(user)
+                    .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+
+            personRepository.findByDocument(editData.getDocument()).ifPresent(existing -> {
+                if (!existing.getId().equals(person.getId())) {
+                    throw new ConflictException("El documento ya está registrado por otro usuario");
+                }
+            });
+
             person.setNombre(editData.getNombre());
-        }
-        if (editData.getApellido() != null) {
             person.setApellido(editData.getApellido());
-        }
-        if (editData.getDocument() != null) {
-
-            if (personRepository.existsByDocumentAndUserNot(editData.getDocument(), user)) {
-                throw new ConflictException("El documento ya está registrado por otro usuario");
-            }
             person.setDocument(editData.getDocument());
-        }
-        if (editData.getTelefono() != null) {
             person.setTelefono(editData.getTelefono());
-        }
-        if (editData.getDireccion() != null) {
             person.setDireccion(editData.getDireccion());
-        }
+            personRepository.save(person);
 
-        personRepository.save(person);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public void saveVerificationCode(String mail, String verificationCode) {
@@ -239,9 +240,10 @@ public class UserService {
         return new RecoverResponse(mail, recoveryToken);
     }
 
-    public String generateRecoveryToken(String email){
+    public String generateRecoveryToken(String email) {
 
-        User user = this.userRepository.findByMail(email).orElseThrow(()-> new NotFoundException("Usuario no encontrado"));
+        User user = this.userRepository.findByMail(email)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
         Long userId = user.getId();
 
@@ -251,14 +253,11 @@ public class UserService {
 
     }
 
-    public String createWorker(WorkerRegisterDto workerData) {
+    public User createWorker(WorkerRegisterDto workerData) {
 
+        String email = workerData.getEmail();
+        Long role_id = workerData.getRole_id();
 
-        return "Hola";
-
-        /* 
-
-        
         if (userRepository.findByMail(email).isPresent()) {
             throw new ConflictException("El email ya está registrado");
         }
@@ -285,7 +284,7 @@ public class UserService {
         UserPerRole userPerRole = new UserPerRole();
         userPerRole.setUser(user);
         userPerRole.setRole(rolesRepository.findById(role_id)
-                .orElseThrow(() -> new NotFoundException("No se encontró el Rol Usuario")));
+                .orElseThrow(() -> new NotFoundException("No se encontró el Rol provisto")));
         userPerRoleRepository.save(userPerRole);
 
         try {
@@ -295,8 +294,6 @@ public class UserService {
         }
 
         return user;
-
-        */
     }
 
     public boolean updatePassword(Long userId, String newPassword) {
@@ -307,6 +304,6 @@ public class UserService {
 
         return true;
 
-        }
-    
+    }
+
 }
