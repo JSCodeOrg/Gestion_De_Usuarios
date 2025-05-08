@@ -98,6 +98,12 @@ public class AuthService {
         Person person = personRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCredentialsException("No se encontró información de la persona"));
 
+        List<UserPerRole> userPerRoles = roleRepository.findByUser(user);
+        if (userPerRoles.isEmpty()) {
+            throw new InvalidCredentialsException("No se encontró información de los roles");
+        }
+        UserPerRole userPerRole = userPerRoles.get(0);
+
         if (user.getDeleted_at() != null) {
             throw new DeactivatedUserException("Usuario desactivado");
         }
@@ -109,6 +115,7 @@ public class AuthService {
         CheckLogin userData = new CheckLogin();
         userData.setUser_id(user.getId());
         userData.setProfileImgUrl(person.getProfileImageUrl());
+        userData.setRole(userPerRole.getRole().getName()); // Assuming 'getName()' retrieves the role name as a String
 
         return new ApiResponse<>("Usuario autenticado con éxito", userData, false, 200);
     }

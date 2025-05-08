@@ -106,7 +106,7 @@ public class UserService {
         user.setMail(data.getMail());
         user.setPassword(passwordEncoder.encode(data.getPassword()));
         user.setVerified(false);
-        user.setFirstLogin(true);
+        user.setFirstLogin(false);
         user = userRepository.save(user);
 
         Person person = new Person();
