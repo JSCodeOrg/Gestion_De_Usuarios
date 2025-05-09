@@ -8,6 +8,8 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
 import com.JSCode.GestionUsuarios.exceptions.ConflictException;
@@ -304,6 +306,26 @@ public class UserService {
 
         return true;
 
+    }
+
+    public UserDataDTO getUserData(String token){
+        Long userId = Long.parseLong(jwtUtil.extractUsername(token));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        Person person = personRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+
+        UserDataDTO userData = new UserDataDTO();
+        userData.setNombre(person.getNombre());
+        userData.setApellido(person.getApellido());
+        userData.setDocumento(person.getDocument());
+        userData.setEmail(user.getMail());
+        userData.setTelefono(person.getTelefono());
+        userData.setDireccion(person.getDireccion());
+
+        return userData;
     }
 
 }

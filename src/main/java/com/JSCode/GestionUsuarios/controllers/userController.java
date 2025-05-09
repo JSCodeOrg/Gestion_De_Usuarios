@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +22,7 @@ import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.EditData;
+import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.AuthService;
 import com.JSCode.GestionUsuarios.services.UserService;
@@ -45,9 +47,6 @@ public class UserController {
 
     @Autowired
     private RecoverEmail recoverEmail;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -174,23 +173,24 @@ public class UserController {
         }
     }
 
-    /* 
+    /*
+     * 
+     * @PostMapping("/edition")
+     * public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData
+     * request) {
+     * if (request.getUserId() == null) {
+     * return ResponseEntity.badRequest().body(
+     * new ApiResponse<>("Se requiere user_id", null, true, 400));
+     * }
+     * 
+     * userService.updateUserData(request.getUserId(), request);
+     * 
+     * return ResponseEntity.ok(
+     * new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
+     * }
+     * 
+     */
 
-    @PostMapping("/edition")
-    public ResponseEntity<ApiResponse<Void>> editUserData(@RequestBody EditData request) {
-        if (request.getUserId() == null) {
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Se requiere user_id", null, true, 400));
-        }
-
-        userService.updateUserData(request.getUserId(), request);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
-    }
-
-    */
-    
     @PostMapping("/verifyedition")
     public ResponseEntity<ApiResponse<User>> verifyEdition(@RequestBody VerificationEditionRequest request) {
         if (request.getId() == null || request.getPassword() == null) {
@@ -210,41 +210,61 @@ public class UserController {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Se requiere email y rol", null, true, 400));
         }
-        
+
         userService.createWorker(workerData);
-        
+
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
     }
 
     @PutMapping("/updateinfo")
-    public ResponseEntity<ApiResponse<Void>> updateUserInfo(@RequestBody EditDataDTO newData, @RequestHeader("Authorization") String token){
-        if(newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null || newData.getTelefono() == null || newData.getDocument() == null || newData.getPassword() == null){
+    public ResponseEntity<ApiResponse<Void>> updateUserInfo(@RequestBody EditDataDTO newData,
+            @RequestHeader("Authorization") String token) {
+        if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
+                || newData.getTelefono() == null || newData.getDocument() == null || newData.getPassword() == null) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Se requiere nombre, apellido y mail", null, true, 400));
+                    new ApiResponse<>("Se requiere nombre, apellido y mail", null, true, 400));
         }
-        if(token == null || token.isEmpty()){
+        if (token == null || token.isEmpty()) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Token no proporcionado", null, true, 400));
+                    new ApiResponse<>("Token no proporcionado", null, true, 400));
         }
-        if(!token.startsWith("Bearer ")){
+        if (!token.startsWith("Bearer ")) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Token en formato incorrecto", null, true, 400));
+                    new ApiResponse<>("Token en formato incorrecto", null, true, 400));
         }
 
-        if(!jwtUtil.isTokenValid(token.substring(7))){
+        if (!jwtUtil.isTokenValid(token.substring(7))) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Token inválido o expirado", null, true, 400));
+                    new ApiResponse<>("Token inválido o expirado", null, true, 400));
         }
 
         Boolean update = userService.updateUserData(newData, token.substring(7));
 
-        if(!update){
+        if (!update) {
             return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Error al actualizar los datos", null, true, 400));
+                    new ApiResponse<>("Error al actualizar los datos", null, true, 400));
         }
         return ResponseEntity.ok(
-            new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
+                new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
     }
 
+    @GetMapping("/getuser")
+    public ResponseEntity<ApiResponse<UserDataDTO>> getUserData(@RequestHeader("Authorization") String authToken) {
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token no proporcionado o inválido", null, true, 400));
+        }
+        String token = authToken.substring(7); 
+
+        if(!jwtUtil.isTokenValid(token)){
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token inválido o expirado", null, true, 400));
+        }
+        UserDataDTO userData = userService.getUserData(token);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("Datos obtenidos correctamente", userData, false, 200));
+
+    }
 }
