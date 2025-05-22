@@ -318,6 +318,7 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
 
         UserDataDTO userData = new UserDataDTO();
+        userData.setFotoperfil(person.getProfileImageUrl());
         userData.setNombre(person.getNombre());
         userData.setApellido(person.getApellido());
         userData.setDocumento(person.getDocument());

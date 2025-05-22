@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserDataDTO {
+    private String fotoperfil;
     private String nombre;
     private String apellido;
     private String documento;
