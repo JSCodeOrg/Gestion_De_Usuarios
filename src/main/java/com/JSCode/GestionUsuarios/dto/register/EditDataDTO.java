@@ -8,8 +8,8 @@ import lombok.Setter;
 public class EditDataDTO {
     private String nombre;
     private String apellido;
-    private String document;
+    private String documento;
+    private String email;
     private String direccion;
     private String telefono;
-    private String password;
 }

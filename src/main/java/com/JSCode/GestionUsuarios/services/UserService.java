@@ -8,7 +8,10 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.JSCode.GestionUsuarios.dto.ApiResponse;
+import com.JSCode.GestionUsuarios.dto.ProfileImageDTO;
 import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
@@ -69,6 +72,9 @@ public class UserService {
 
     @Autowired
     private UserRecoveryCodeRepository recoveryCodeRepository;
+
+    @Autowired
+    private ImageStorageService imageService;
 
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
             "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$");
@@ -163,37 +169,58 @@ public class UserService {
         return userRepository.existsByMail(userMail);
     }
 
-    public boolean updateUserData(EditDataDTO editData, String token) {
+    public EditDataDTO updateUserData(EditDataDTO editData, String token) {
 
-        try {
-            Long userId = Long.parseLong(jwtUtil.extractUsername(token));
+        Optional<User> userWithEmail = userRepository.findByMail(editData.getEmail());
 
-            User user = this.userRepository.findById(userId)
-                    .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        if (userWithEmail.isPresent()) {
+            Long user_id = userWithEmail.get().getId();
+            String requester_id = jwtUtil.extractUsername(token);
+            Long requester_id_long = Long.parseLong(requester_id);
 
-            user.setPassword(passwordEncoder.encode(editData.getPassword()));
-            userRepository.save(user);
-
-            Person person = personRepository.findByUser(user)
-                    .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
-
-            personRepository.findByDocument(editData.getDocument()).ifPresent(existing -> {
-                if (!existing.getId().equals(person.getId())) {
-                    throw new ConflictException("El documento ya está registrado por otro usuario");
-                }
-            });
-
-            person.setNombre(editData.getNombre());
-            person.setApellido(editData.getApellido());
-            person.setDocument(editData.getDocument());
-            person.setTelefono(editData.getTelefono());
-            person.setDireccion(editData.getDireccion());
-            personRepository.save(person);
-
-            return true;
-        } catch (Exception e) {
-            return false;
+            if (!user_id.equals(requester_id_long)) {
+                throw new ConflictException("El email ya se encuentra en uso");
+            }
         }
+
+        if (!checkEmailService.isValidEmail(editData.getEmail())) {
+            throw new BadRequestException("El email no es un email válido");
+        }
+
+        Long userId = Long.parseLong(jwtUtil.extractUsername(token));
+
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        User userEdited = user;
+        userEdited.setMail(editData.getEmail());
+        userRepository.save(userEdited);
+
+        Person person = personRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+
+        personRepository.findByDocument(editData.getDocumento()).ifPresent(existing -> {
+            if (!existing.getId().equals(person.getId())) {
+                throw new ConflictException("El documento ya está registrado por otro usuario");
+            }
+        });
+
+        person.setNombre(editData.getNombre());
+        person.setApellido(editData.getApellido());
+        person.setDocument(editData.getDocumento());
+        person.setTelefono(editData.getTelefono());
+        person.setDireccion(editData.getDireccion());
+        personRepository.save(person);
+
+        EditDataDTO editedData = new EditDataDTO();
+        editedData.setNombre(person.getNombre());
+        editedData.setApellido(person.getApellido());
+        editedData.setDocumento(person.getDocument());
+        editedData.setEmail(user.getMail());
+        editedData.setDireccion(person.getDireccion());
+
+        return editedData;
+
     }
 
     public void saveVerificationCode(String mail, String verificationCode) {
@@ -308,7 +335,8 @@ public class UserService {
 
     }
 
-    public UserDataDTO getUserData(String token){
+    public UserDataDTO getUserData(String token) {
+
         Long userId = Long.parseLong(jwtUtil.extractUsername(token));
 
         User user = userRepository.findById(userId)
@@ -327,6 +355,30 @@ public class UserService {
         userData.setDireccion(person.getDireccion());
 
         return userData;
+    }
+
+    public ProfileImageDTO updateProfileImage(MultipartFile file, String token) {
+        String user_id = this.jwtUtil.extractUsername(token);
+
+        Long user_id_long = Long.parseLong(user_id);
+
+        User user = this.userRepository.findById(user_id_long)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        Person person = this.personRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("Información del usuario no encontrada"));
+        String newImageUrl = this.imageService.uploadImageToImgBB(file);
+
+        person.setProfileImageUrl(newImageUrl);
+
+        personRepository.save(person);
+
+        ProfileImageDTO newImage = new ProfileImageDTO();
+
+        newImage.setImageUrl(newImageUrl);
+
+        return newImage;
+
     }
 
 }

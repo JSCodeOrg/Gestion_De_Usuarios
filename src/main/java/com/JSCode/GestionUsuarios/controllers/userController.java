@@ -15,16 +15,17 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
+import com.JSCode.GestionUsuarios.dto.ProfileImageDTO;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
-import com.JSCode.GestionUsuarios.dto.EditData;
 import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.models.User;
-import com.JSCode.GestionUsuarios.services.AuthService;
 import com.JSCode.GestionUsuarios.services.UserService;
 import com.JSCode.GestionUsuarios.services.email.RecoverEmail;
 import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
@@ -218,10 +219,11 @@ public class UserController {
     }
 
     @PutMapping("/updateinfo")
-    public ResponseEntity<ApiResponse<Void>> updateUserInfo(@RequestBody EditDataDTO newData,
+    public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(@RequestBody EditDataDTO newData,
             @RequestHeader("Authorization") String token) {
         if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
-                || newData.getTelefono() == null || newData.getDocument() == null || newData.getPassword() == null) {
+                || newData.getTelefono() == null || newData.getDocumento() == null || newData.getEmail() == null) {
+
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Se requiere nombre, apellido y mail", null, true, 400));
         }
@@ -239,14 +241,10 @@ public class UserController {
                     new ApiResponse<>("Token inválido o expirado", null, true, 400));
         }
 
-        Boolean update = userService.updateUserData(newData, token.substring(7));
+        EditDataDTO changeData = userService.updateUserData(newData, token.substring(7));
 
-        if (!update) {
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Error al actualizar los datos", null, true, 400));
-        }
         return ResponseEntity.ok(
-                new ApiResponse<>("Datos actualizados correctamente", null, false, 200));
+                new ApiResponse<>("Datos actualizados correctamente", changeData, false, 200));
     }
 
     @GetMapping("/getuser")
@@ -255,9 +253,9 @@ public class UserController {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token no proporcionado o inválido", null, true, 400));
         }
-        String token = authToken.substring(7); 
+        String token = authToken.substring(7);
 
-        if(!jwtUtil.isTokenValid(token)){
+        if (!jwtUtil.isTokenValid(token)) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token inválido o expirado", null, true, 400));
         }
@@ -267,4 +265,27 @@ public class UserController {
                 new ApiResponse<>("Datos obtenidos correctamente", userData, false, 200));
 
     }
+
+    @PutMapping("/updateprofileimage")
+    public ResponseEntity<ApiResponse<ProfileImageDTO>> updateUserImage(@RequestParam("newImage") MultipartFile file,
+            @RequestHeader("Authorization") String authToken) {
+
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token no proporcionado o inválido", null, true, 400));
+        }
+
+        String token = authToken.substring(7);
+
+        if (!jwtUtil.isTokenValid(token)) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token inválido o expirado", null, true, 400));
+
+        }
+
+        ProfileImageDTO image = userService.updateProfileImage(file, token);
+
+        return ResponseEntity.ok(new ApiResponse<>("Imagen actualizada correctamente", image, false, 0));
+    }
+
 }

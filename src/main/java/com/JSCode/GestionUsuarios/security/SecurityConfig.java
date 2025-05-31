@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -52,20 +53,23 @@ public class SecurityConfig {
 
         return http.build();
     }
-/* 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of ("http://localhost:4200", "http://localhost:8080", "http://192.168.0.6:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-*/
+    /*
+     * @Bean
+     * public CorsConfigurationSource corsConfigurationSource() {
+     * CorsConfiguration config = new CorsConfiguration();
+     * config.setAllowedOrigins(List.of ("http://localhost:4200",
+     * "http://localhost:8080", "http://192.168.0.6:4200"));
+     * config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+     * config.setAllowedHeaders(List.of("*"));
+     * config.setAllowCredentials(true);
+     * 
+     * UrlBasedCorsConfigurationSource source = new
+     * UrlBasedCorsConfigurationSource();
+     * source.registerCorsConfiguration("/**", config);
+     * return source;
+     * }
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -74,5 +78,10 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
