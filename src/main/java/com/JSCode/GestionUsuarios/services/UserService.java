@@ -380,5 +380,15 @@ public class UserService {
         return newImage;
 
     }
+    public String getUserAddress(Long id){
+
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("No se ha encontrado al usuario"));
+
+        Person person = personRepository.findByUser(user).orElseThrow(() -> new NotFoundException("No se ha encontrado la información de esta persona"));
+
+        String user_address = person.getDireccion();
+
+        return user_address;
+    }
 
 }

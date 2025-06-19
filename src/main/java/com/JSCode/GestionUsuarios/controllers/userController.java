@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -286,6 +287,14 @@ public class UserController {
         ProfileImageDTO image = userService.updateProfileImage(file, token);
 
         return ResponseEntity.ok(new ApiResponse<>("Imagen actualizada correctamente", image, false, 0));
+    }
+    
+    @GetMapping("/getaddress/{id}")
+    public ResponseEntity<String> getuseraddress(@PathVariable Long id){
+
+        String userAddress = userService.getUserAddress(id);
+
+        return ResponseEntity.ok(userAddress);
     }
 
 }
