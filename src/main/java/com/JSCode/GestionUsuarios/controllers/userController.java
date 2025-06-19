@@ -28,7 +28,7 @@ import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.models.User;
 import com.JSCode.GestionUsuarios.services.UserService;
-import com.JSCode.GestionUsuarios.services.email.RecoverEmail;
+import com.JSCode.GestionUsuarios.services.Email.RecoverEmail;
 import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.utils.VerificationStatus;
 import jakarta.servlet.http.Cookie;
