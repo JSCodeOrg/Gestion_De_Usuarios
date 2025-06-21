@@ -39,7 +39,10 @@ public class SecurityConfig {
                                 "/users/recoverpassword",
                                 "/users/verify",
                                 "/users/checkrecoverycode",
-                                "/users/createnewpassword")
+                                "/users/createnewpassword",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

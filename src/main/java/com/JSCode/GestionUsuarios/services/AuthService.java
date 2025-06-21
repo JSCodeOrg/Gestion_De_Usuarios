@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.JSCode.GestionUsuarios.dto.ApiResponse;
+import com.JSCode.GestionUsuarios.dto.Response;
 import com.JSCode.GestionUsuarios.dto.Auth.AuthResponse;
 import com.JSCode.GestionUsuarios.dto.Auth.CheckLogin;
 import com.JSCode.GestionUsuarios.dto.Auth.UserCredentials;
@@ -76,17 +76,17 @@ public class AuthService {
         return new AuthResponse(token, user.getId(), isFirstLogin);
     }
 
-    public ApiResponse<CheckLogin> checkLogin(String token) {
+    public Response<CheckLogin> checkLogin(String token) {
 
         if (token == null || token.isEmpty()) {
-            return new ApiResponse<>("Token no proporcionado", null, true, 401); // Cambiado a 401 para error de
+            return new Response<>("Token no proporcionado", null, true, 401); // Cambiado a 401 para error de
                                                                                  // autorización
         }
 
         boolean isValid = jwtUtil.isTokenValid(token);
 
         if (!isValid) {
-            return new ApiResponse<>("El token de autenticación no es válido", true, 401); // Cambiado a 401 para error
+            return new Response<>("El token de autenticación no es válido", true, 401); // Cambiado a 401 para error
                                                                                            // de autorización
         }
 
@@ -116,6 +116,6 @@ public class AuthService {
         userData.setProfileImgUrl(person.getProfileImageUrl());
         userData.setRole(userPerRole.getRole().getName()); // Assuming 'getName()' retrieves the role name as a String
 
-        return new ApiResponse<>("Usuario autenticado con éxito", userData, false, 200);
+        return new Response<>("Usuario autenticado con éxito", userData, false, 200);
     }
 }

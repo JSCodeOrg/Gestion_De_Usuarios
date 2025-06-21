@@ -15,7 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 import com.JSCode.GestionUsuarios.controllers.UserController;
-import com.JSCode.GestionUsuarios.dto.ApiResponse;
+import com.JSCode.GestionUsuarios.dto.Response;
 import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exceptions.BadRequestException;
@@ -53,7 +53,7 @@ class UserControllerTest {
 
         when(userService.registerUser(any(UserRegisterDto.class))).thenReturn(mockUser);
 
-        ResponseEntity<ApiResponse<User>> response = userController.register(dto);
+        ResponseEntity<Response<User>> response = userController.register(dto);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("Registro exitoso", response.getBody().getMessage());
@@ -114,7 +114,7 @@ class UserControllerTest {
 
         when(userService.verifyUserEdit(1L, "password123")).thenReturn(mockUser);
 
-        ResponseEntity<ApiResponse<User>> response = userController.verifyEdition(request);
+        ResponseEntity<Response<User>> response = userController.verifyEdition(request);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("Usuario verificado correctamente", response.getBody().getMessage());
@@ -130,7 +130,7 @@ class UserControllerTest {
         request.setPassword(null); // Simulando que no se envió la contraseña
         when(userService.verifyUserEdit(null, null)).thenThrow(new BadRequestException("Se requiere user_id y password"));
 
-        ResponseEntity<ApiResponse<User>> response = userController.verifyEdition(request);
+        ResponseEntity<Response<User>> response = userController.verifyEdition(request);
 
         assertEquals(400, response.getStatusCode().value());
         assertEquals("Se requiere user_id y password", response.getBody().getMessage());
