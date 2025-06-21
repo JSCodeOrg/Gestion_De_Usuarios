@@ -32,7 +32,6 @@ import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
-import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
 import com.JSCode.GestionUsuarios.utils.VerificationStatus;
 
 @Service
@@ -61,9 +60,6 @@ public class UserService {
 
     @Autowired
     private EmailService emailService;
-
-    @Autowired
-    private VerificationCodeGenerator codeGenerator;
 
     @Autowired
     private JwtUtil jwtUtil;
