@@ -2,7 +2,6 @@ package com.JSCode.GestionUsuarios.services.Email;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
