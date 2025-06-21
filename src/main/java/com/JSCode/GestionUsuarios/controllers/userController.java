@@ -17,13 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
 import com.JSCode.GestionUsuarios.dto.DeactivationRequest;
 import com.JSCode.GestionUsuarios.dto.ProfileImageDTO;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
+import com.JSCode.GestionUsuarios.dto.users.DeliveryDataDTO;
+import com.JSCode.GestionUsuarios.dto.users.DeliveryEntregasData;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.models.User;
@@ -206,14 +207,15 @@ public class UserController {
 
     @PreAuthorize("hasRole('administrador')")
     @PostMapping("/createuser")
-    public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData) {
+    public ResponseEntity<ApiResponse<User>> createWorker(@RequestBody WorkerRegisterDto workerData,
+            @RequestHeader("Authorization") String authToken) {
 
         if (workerData.getEmail() == null || workerData.getRole_id() == null) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Se requiere email y rol", null, true, 400));
         }
 
-        userService.createWorker(workerData);
+        userService.createWorker(workerData, authToken);
 
         return ResponseEntity.ok(
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
@@ -223,10 +225,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(@RequestBody EditDataDTO newData,
             @RequestHeader("Authorization") String token) {
         if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
-                || newData.getTelefono() == null || newData.getDocumento() == null || newData.getEmail() == null) {
+                || newData.getTelefono() == null || newData.getDocument() == null) {
 
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Se requiere nombre, apellido y mail", null, true, 400));
+                    new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
         }
         if (token == null || token.isEmpty()) {
             return ResponseEntity.badRequest().body(
@@ -288,13 +290,42 @@ public class UserController {
 
         return ResponseEntity.ok(new ApiResponse<>("Imagen actualizada correctamente", image, false, 0));
     }
-    
+
     @GetMapping("/getaddress/{id}")
-    public ResponseEntity<String> getuseraddress(@PathVariable Long id){
+    public ResponseEntity<String> getuseraddress(@PathVariable Long id) {
 
         String userAddress = userService.getUserAddress(id);
 
         return ResponseEntity.ok(userAddress);
     }
 
+    @PutMapping("/repartidor/actualizar")
+    public ResponseEntity<?> registrarInfoRepartidor(@RequestBody DeliveryDataDTO deliveryData,
+            @RequestHeader("Authorization") String authToken) {
+
+        try {
+            if (deliveryData.getNombre() == null || deliveryData.getApellido() == null
+                    || deliveryData.getDireccion() == null
+                    || deliveryData.getTelefono() == null || deliveryData.getDocument() == null) {
+
+                return ResponseEntity.badRequest().body(
+                        new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
+            }
+
+            if (authToken.isBlank() || authToken.isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        new ApiResponse<>("Se requiere el token de usuario.", null, true, 400));
+            }
+
+            String token = authToken.substring(7);
+
+            DeliveryEntregasData new_deliveryData = userService.updateDeliveryInfo(deliveryData, token);
+
+            return ResponseEntity.ok("Se ha creado satisfactoriamente el repartidor:" + new_deliveryData);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("No se ha podido crear el repartidor." + e.getMessage());
+        }
+    }
 }
