@@ -23,6 +23,7 @@ import com.JSCode.GestionUsuarios.dto.ProfileImageDTO;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
+import com.JSCode.GestionUsuarios.dto.users.AddressDTO;
 import com.JSCode.GestionUsuarios.dto.users.DeliveryDataDTO;
 import com.JSCode.GestionUsuarios.dto.users.DeliveryEntregasData;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
@@ -292,9 +293,9 @@ public class UserController {
     }
 
     @GetMapping("/getaddress/{id}")
-    public ResponseEntity<String> getuseraddress(@PathVariable Long id) {
+    public ResponseEntity<AddressDTO> getuseraddress(@PathVariable Long id) {
 
-        String userAddress = userService.getUserAddress(id);
+        AddressDTO userAddress = userService.getUserAddress(id);
 
         return ResponseEntity.ok(userAddress);
     }

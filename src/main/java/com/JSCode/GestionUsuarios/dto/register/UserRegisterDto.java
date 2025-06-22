@@ -26,6 +26,9 @@ public class UserRegisterDto {
     private String direccion;
 
     @NotBlank
+    private String ciudad;
+
+    @NotBlank
     private String telefono;
 
     private String profileImageUrl;

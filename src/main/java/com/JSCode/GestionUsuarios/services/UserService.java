@@ -34,6 +34,7 @@ import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
+import com.JSCode.GestionUsuarios.dto.users.AddressDTO;
 import com.JSCode.GestionUsuarios.dto.users.DeliveryDataDTO;
 import com.JSCode.GestionUsuarios.dto.users.DeliveryEntregasData;
 import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
@@ -133,6 +134,7 @@ public class UserService {
         person.setDireccion(data.getDireccion());
         person.setTelefono(data.getTelefono());
         person.setProfileImageUrl(null);
+        person.setCiudad(data.getCiudad());
         person = personRepository.save(person);
 
         UserPerRole userPerRole = new UserPerRole();
@@ -389,7 +391,7 @@ public class UserService {
 
     }
 
-    public String getUserAddress(Long id) {
+    public AddressDTO getUserAddress(Long id) {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No se ha encontrado al usuario"));
@@ -398,8 +400,13 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("No se ha encontrado la información de esta persona"));
 
         String user_address = person.getDireccion();
+        String ciudad = person.getCiudad();
 
-        return user_address;
+        AddressDTO address = new AddressDTO();
+        address.setCiudad(ciudad);
+        address.setDireccion(user_address);
+
+        return address;
     }
 
     @Transactional
@@ -447,6 +454,5 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException("Error al crear el delivery" + e.getMessage());
         }
-
     }
 }
