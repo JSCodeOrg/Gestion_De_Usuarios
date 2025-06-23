@@ -31,8 +31,12 @@ public class UserRegisterDto {
     private String apellido;
 
     @NotBlank
-    @Schema(description = "Dirección de residencia", example = "Cra 45 #10-23, Bogotá")
+    @Schema(description = "Dirección de residencia", example = "Cra 45 #10-23")
     private String direccion;
+
+    @Schema(description = "Ciudad de residencia", example = "Bogotá")
+    @NotBlank
+    private String ciudad;
 
     @NotBlank
     @Schema(description = "Número de teléfono", example = "+57 3201234567")
