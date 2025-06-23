@@ -264,7 +264,7 @@ public class UserService {
 
         String recoveryToken = jwtUtil.generateRecoveryToken(user.getId());
 
-        return new RecoverResponse(mail, recoveryToken);
+        return new RecoverResponse(mail, recoveryToken, recoveryToken);
     }
 
     public String generateRecoveryToken(String email) {

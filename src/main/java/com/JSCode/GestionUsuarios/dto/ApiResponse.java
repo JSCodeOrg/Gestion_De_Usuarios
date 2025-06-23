@@ -18,6 +18,14 @@ public class ApiResponse<T> {
         this.status = status;
     }
 
+    public int getStatus() {
+        return status;
+    }
+
+    public int getCode() {
+        return status;
+    }
+
     public ApiResponse(String message, boolean error, int status) {
         this(message, null, error, status);
     }
