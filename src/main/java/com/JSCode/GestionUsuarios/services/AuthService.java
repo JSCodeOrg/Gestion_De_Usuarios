@@ -114,7 +114,7 @@ public class AuthService {
         CheckLogin userData = new CheckLogin();
         userData.setUser_id(user.getId());
         userData.setProfileImgUrl(person.getProfileImageUrl());
-        userData.setRole(userPerRole.getRole().getName()); // Assuming 'getName()' retrieves the role name as a String
+        userData.setRole(userPerRole.getRole().getName()); 
 
         return new Response<>("Usuario autenticado con éxito", userData, false, 200);
     }

@@ -23,6 +23,9 @@ import com.JSCode.GestionUsuarios.dto.ProfileImageDTO;
 import com.JSCode.GestionUsuarios.dto.Password.RecoverPassword;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
+import com.JSCode.GestionUsuarios.dto.users.AddressDTO;
+import com.JSCode.GestionUsuarios.dto.users.DeliveryDataDTO;
+import com.JSCode.GestionUsuarios.dto.users.DeliveryEntregasData;
 import com.JSCode.GestionUsuarios.dto.WorkerRegisterDto;
 import com.JSCode.GestionUsuarios.dto.UserDataDTO;
 import com.JSCode.GestionUsuarios.models.User;
@@ -810,14 +813,16 @@ public class UserController {
         )
     )
         
-        @RequestBody WorkerRegisterDto workerData) {
+        @RequestBody WorkerRegisterDto workerData,
+        @RequestHeader("Authorization") String authToken
+        ) {
 
         if (workerData.getEmail() == null || workerData.getRole_id() == null) {
             return ResponseEntity.badRequest().body(
                     new Response<>("Se requiere email y rol", null, true, 400));
         }
 
-        userService.createWorker(workerData);
+        userService.createWorker(workerData,authToken);
 
         return ResponseEntity.ok(
                 new Response<>("Usuario creado correctamente", null, false, 200));
@@ -1120,7 +1125,7 @@ public class UserController {
     })
 
     @GetMapping("/getaddress/{id}")
-    public ResponseEntity<String> getuseraddress(
+    public ResponseEntity<AddressDTO> getuseraddress(
         @Parameter(
         description = "ID del usuario del cual se desea obtener la dirección",
         required = true,
@@ -1129,9 +1134,39 @@ public class UserController {
         
         @PathVariable Long id){
 
-        String userAddress = userService.getUserAddress(id);
+        AddressDTO userAddress = userService.getUserAddress(id);
 
         return ResponseEntity.ok(userAddress);
+    }
+
+    @PutMapping("/repartidor/actualizar")
+    public ResponseEntity<?> registrarInfoRepartidor(@RequestBody DeliveryDataDTO deliveryData,
+            @RequestHeader("Authorization") String authToken) {
+
+        try {
+            if (deliveryData.getNombre() == null || deliveryData.getApellido() == null
+                    || deliveryData.getDireccion() == null
+                    || deliveryData.getTelefono() == null || deliveryData.getDocument() == null) {
+
+                return ResponseEntity.badRequest().body(
+                        new Response<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
+            }
+
+            if (authToken.isBlank() || authToken.isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        new Response<>("Se requiere el token de usuario.", null, true, 400));
+            }
+
+            String token = authToken.substring(7);
+
+            DeliveryEntregasData new_deliveryData = userService.updateDeliveryInfo(deliveryData, token);
+
+            return ResponseEntity.ok("Se ha creado satisfactoriamente el repartidor:" + new_deliveryData);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("No se ha podido crear el repartidor." + e.getMessage());
+        }
     }
 
 }

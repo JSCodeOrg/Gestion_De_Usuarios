@@ -9,4 +9,5 @@ import com.JSCode.GestionUsuarios.models.UserPerRole;
 
 public interface UserPerRoleRepository extends JpaRepository<UserPerRole, Long> {
     List<UserPerRole> findByUser(User user);
+    List<UserPerRole> findAllByUser(User user);
 }

@@ -1,9 +1,12 @@
 package com.JSCode.GestionUsuarios.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,8 +34,13 @@ import com.JSCode.GestionUsuarios.services.Email.checkEmailService;
 import com.JSCode.GestionUsuarios.dto.Auth.RecoverResponse;
 import com.JSCode.GestionUsuarios.dto.register.EditDataDTO;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
+import com.JSCode.GestionUsuarios.dto.users.AddressDTO;
+import com.JSCode.GestionUsuarios.dto.users.DeliveryDataDTO;
+import com.JSCode.GestionUsuarios.dto.users.DeliveryEntregasData;
 import com.JSCode.GestionUsuarios.utils.PasswordGenerator;
 import com.JSCode.GestionUsuarios.utils.VerificationStatus;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
@@ -63,6 +71,9 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RepartidorClient repartidorClient;
 
     @Autowired
     private UserRecoveryCodeRepository recoveryCodeRepository;
@@ -119,6 +130,7 @@ public class UserService {
         person.setDireccion(data.getDireccion());
         person.setTelefono(data.getTelefono());
         person.setProfileImageUrl(null);
+        person.setCiudad(data.getCiudad());
         person = personRepository.save(person);
 
         UserPerRole userPerRole = new UserPerRole();
@@ -193,7 +205,7 @@ public class UserService {
         Person person = personRepository.findByUser(user)
                 .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
 
-        personRepository.findByDocument(editData.getDocumento()).ifPresent(existing -> {
+        personRepository.findByDocument(editData.getDocument()).ifPresent(existing -> {
             if (!existing.getId().equals(person.getId())) {
                 throw new ConflictException("El documento ya está registrado por otro usuario");
             }
@@ -201,7 +213,7 @@ public class UserService {
 
         person.setNombre(editData.getNombre());
         person.setApellido(editData.getApellido());
-        person.setDocument(editData.getDocumento());
+        person.setDocument(editData.getDocument());
         person.setTelefono(editData.getTelefono());
         person.setDireccion(editData.getDireccion());
         personRepository.save(person);
@@ -209,7 +221,7 @@ public class UserService {
         EditDataDTO editedData = new EditDataDTO();
         editedData.setNombre(person.getNombre());
         editedData.setApellido(person.getApellido());
-        editedData.setDocumento(person.getDocument());
+        editedData.setDocument(person.getDocument());
         editedData.setEmail(user.getMail());
         editedData.setDireccion(person.getDireccion());
 
@@ -276,7 +288,7 @@ public class UserService {
 
     }
 
-    public User createWorker(WorkerRegisterDto workerData) {
+    public User createWorker(WorkerRegisterDto workerData, String authToken) {
 
         String email = workerData.getEmail();
         Long role_id = workerData.getRole_id();
@@ -374,15 +386,69 @@ public class UserService {
         return newImage;
 
     }
-    public String getUserAddress(Long id){
 
-        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("No se ha encontrado al usuario"));
+    public AddressDTO getUserAddress(Long id) {
 
-        Person person = personRepository.findByUser(user).orElseThrow(() -> new NotFoundException("No se ha encontrado la información de esta persona"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("No se ha encontrado al usuario"));
+
+        Person person = personRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("No se ha encontrado la información de esta persona"));
 
         String user_address = person.getDireccion();
+        String ciudad = person.getCiudad();
 
-        return user_address;
+        AddressDTO address = new AddressDTO();
+        address.setCiudad(ciudad);
+        address.setDireccion(user_address);
+
+        return address;
     }
 
+    @Transactional
+    public DeliveryEntregasData updateDeliveryInfo(DeliveryDataDTO deliveryData, String authToken) {
+
+        try {
+
+            String user_id = jwtUtil.extractUsername(authToken);
+
+            Long user_long = Long.parseLong(user_id);
+
+            User user_found = userRepository.findById(user_long).orElseThrow(() -> new NotFoundException("No se ha encontrado un usuario asociado a este id"));
+
+            personRepository.findByDocument(deliveryData.getDocument())
+                    .ifPresent(existing -> {
+                        throw new ConflictException("Ya existe esta persona en el sistema.");
+                    });
+
+            Person person_user = personRepository.findByUser(user_found).orElseThrow(() -> new NotFoundException("No se ha encontrado la data por defecto del usuario"));
+            person_user.setNombre(deliveryData.getNombre());
+            person_user.setApellido(deliveryData.getApellido());
+            person_user.setDireccion(deliveryData.getDireccion());
+            person_user.setDocument(deliveryData.getDocument());
+            
+            user_found.setPassword(passwordEncoder.encode(deliveryData.getPassword()));
+        
+            person_user.setTelefono(deliveryData.getTelefono());
+
+            personRepository.save(person_user);
+            
+
+            DeliveryEntregasData deliveryInfo = new DeliveryEntregasData();
+            deliveryInfo.setName(person_user.getNombre());
+            deliveryInfo.setPhone(person_user.getTelefono());
+            deliveryInfo.setUser_id(user_long);
+
+            repartidorClient.sendDeliveryInfo(deliveryInfo, authToken);
+
+            user_found.setFirstLogin(false);
+
+            userRepository.save(user_found);
+
+            return deliveryInfo;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear el delivery" + e.getMessage());
+        }
+    }
 }

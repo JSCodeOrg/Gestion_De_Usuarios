@@ -14,8 +14,9 @@ public class EditDataDTO {
 
     @Schema(description = "Apellido del usuario", example = "Pérez")
     private String apellido;
-
-    @Schema(description = "Dirección de residencia", example = "Calle 123 #45-67")
+    @Schema(description = "Documento del usuario", example = "Pérez")
+    private String document;
+    @Schema(description = "Direccion del usuario", example = "Pérez")
     private String direccion;
 
     @Schema(description = "Teléfono de contacto", example = "3001234567")

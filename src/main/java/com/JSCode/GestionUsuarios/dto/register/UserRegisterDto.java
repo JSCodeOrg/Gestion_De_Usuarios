@@ -38,8 +38,8 @@ public class UserRegisterDto {
     @NotBlank
     private String ciudad;
 
+    @Schema(description = "Telefono del usuario", example = "3156788995")
     @NotBlank
-    @Schema(description = "Número de teléfono", example = "+57 3201234567")
     private String telefono;
 
     @Schema(description = "URL de la imagen de perfil (opcional)", example = "https://example.com/profile.jpg")

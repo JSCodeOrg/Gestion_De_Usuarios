@@ -35,6 +35,8 @@ public class Person {
     @NotBlank(message = "La dirección no puede estar vacía")
     private String direccion;
 
+    private String ciudad;
+
     @NotBlank(message = "El teléfono no puede estar vacío")
     private String telefono;
     
