@@ -1139,8 +1139,68 @@ public class UserController {
         return ResponseEntity.ok(userAddress);
     }
 
+    // Actualizar informacion del repartidor
+
+    @Operation(
+    summary = "Actualizar información del repartidor",
+    description = "Permite que un usuario con rol repartidor actualice su información personal, como nombre, dirección, teléfono, etc."
+    )
+    @ApiResponses(value = {
+    @ApiResponse(
+        responseCode = "200",
+        description = "Repartidor actualizado correctamente",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(
+                value = "Se ha actualizado satisfactoriamente el repartidor: {\"id\": 12, \"nombre\": \"Carlos\", \"apellido\": \"Gómez\", ... }"
+            )
+        )
+    ),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Solicitud inválida por datos incompletos o token faltante/incorrecto",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Response.class),
+            examples = @ExampleObject(
+                value = "{\n  \"message\": \"Se requiere nombre, apellido y demás datos.\",\n  \"data\": null,\n  \"error\": true,\n  \"status\": 400\n}"
+            )
+        )
+    ),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Token JWT ausente o inválido",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Response.class),
+            examples = @ExampleObject(
+                value = "{\n  \"message\": \"Se requiere el token de usuario.\",\n  \"data\": null,\n  \"error\": true,\n  \"status\": 400\n}"
+            )
+        )
+    ),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Error interno al intentar actualizar los datos",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(type = "string"),
+            examples = @ExampleObject(
+                value = "No se ha podido crear el repartidor."
+            )
+        )
+    )
+})
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        required = true,
+        description = "Datos del repartidor a actualizar",
+        content = @Content(schema = @Schema(implementation = DeliveryDataDTO.class))
+    )
+
     @PutMapping("/repartidor/actualizar")
-    public ResponseEntity<?> registrarInfoRepartidor(@RequestBody DeliveryDataDTO deliveryData,
+    public ResponseEntity<?> registrarInfoRepartidor(
+            @RequestBody DeliveryDataDTO deliveryData,
+            @Parameter(description = "Token de autenticación del usuario", required = true)
             @RequestHeader("Authorization") String authToken) {
 
         try {
