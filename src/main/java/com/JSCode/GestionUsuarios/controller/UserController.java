@@ -56,6 +56,9 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    String tokenmessagealert = "Token inválido o expirado";
+    String bearer = "Bearer ";
+
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<User>> register(@RequestBody UserRegisterDto data) {
         User user = userService.registerUser(data);
@@ -120,7 +123,7 @@ public class UserController {
         boolean tokenVerify = jwtUtil.isTokenValid(recoveryToken);
         if (!tokenVerify) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token inválido o expirado", null, true, 403));
+                    new ApiResponse<>(tokenmessagealert, null, true, 403));
         }
 
         Long userId;
@@ -236,14 +239,14 @@ public class UserController {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token no proporcionado", null, true, 400));
         }
-        if (!token.startsWith("Bearer ")) {
+        if (!token.startsWith(bearer)) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token en formato incorrecto", null, true, 400));
         }
 
         if (!jwtUtil.isTokenValid(token.substring(7))) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token inválido o expirado", null, true, 400));
+                    new ApiResponse<>(tokenmessagealert, null, true, 400));
         }
 
         EditDataDTO changeData = userService.updateUserData(newData, token.substring(7));
@@ -254,7 +257,7 @@ public class UserController {
 
     @GetMapping("/getuser")
     public ResponseEntity<ApiResponse<UserDataDTO>> getUserData(@RequestHeader("Authorization") String authToken) {
-        if (authToken == null || !authToken.startsWith("Bearer ")) {
+        if (authToken == null || !authToken.startsWith(bearer)) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token no proporcionado o inválido", null, true, 400));
         }
@@ -262,7 +265,7 @@ public class UserController {
 
         if (!jwtUtil.isTokenValid(token)) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token inválido o expirado", null, true, 400));
+                    new ApiResponse<>(tokenmessagealert, null, true, 400));
         }
         UserDataDTO userData = userService.getUserData(token);
 
@@ -275,7 +278,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<ProfileImageDTO>> updateUserImage(@RequestParam("newImage") MultipartFile file,
             @RequestHeader("Authorization") String authToken) {
 
-        if (authToken == null || !authToken.startsWith("Bearer ")) {
+        if (authToken == null || !authToken.startsWith(bearer)) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>("Token no proporcionado o inválido", null, true, 400));
         }
@@ -284,7 +287,7 @@ public class UserController {
 
         if (!jwtUtil.isTokenValid(token)) {
             return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token inválido o expirado", null, true, 400));
+                    new ApiResponse<>(tokenmessagealert, null, true, 400));
 
         }
 
