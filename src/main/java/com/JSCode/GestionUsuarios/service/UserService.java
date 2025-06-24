@@ -176,58 +176,90 @@ public class UserService {
         return userRepository.existsByMail(userMail);
     }
 
+    @Transactional
     public EditDataDTO updateUserData(EditDataDTO editData, String token) {
 
-        Optional<User> userWithEmail = userRepository.findByMail(editData.getEmail());
+        System.out.println("➡️ Entrando a updateUserData");
 
-        if (userWithEmail.isPresent()) {
-            Long user_id = userWithEmail.get().getId();
-            String requester_id = jwtUtil.extractUsername(token);
-            Long requester_id_long = Long.parseLong(requester_id);
-
-            if (!user_id.equals(requester_id_long)) {
-                throw new ConflictException("El email ya se encuentra en uso");
-            }
+        if (editData == null) {
+            System.out.println("❌ editData llegó null");
+            throw new BadRequestException("Los datos enviados son inválidos");
         }
 
-        if (!checkEmailService.isValidEmail(editData.getEmail())) {
-            throw new BadRequestException("El email no es un email válido");
-        }
+        System.out.println("📧 Email recibido: " + editData.getEmail());
 
-        Long userId = Long.parseLong(jwtUtil.extractUsername(token));
-
-        User user = this.userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-
-        User userEdited = user;
-        userEdited.setMail(editData.getEmail());
-        userRepository.save(userEdited);
-
-        Person person = personRepository.findByUser(user)
-                .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
-
-        personRepository.findByDocument(editData.getDocument()).ifPresent(existing -> {
-            if (!existing.getId().equals(person.getId())) {
-                throw new ConflictException("El documento ya está registrado por otro usuario");
+        try {
+            if (editData.getEmail() == null || editData.getEmail().isBlank()) {
+                throw new BadRequestException("El email no puede ser nulo o vacío");
             }
-        });
 
-        person.setNombre(editData.getNombre());
-        person.setApellido(editData.getApellido());
-        person.setDocument(editData.getDocument());
-        person.setTelefono(editData.getTelefono());
-        person.setDireccion(editData.getDireccion());
-        personRepository.save(person);
+            System.out.println("🔍 Buscando si el email ya está registrado...");
+            Optional<User> userWithEmail = userRepository.findByMail(editData.getEmail());
 
-        EditDataDTO editedData = new EditDataDTO();
-        editedData.setNombre(person.getNombre());
-        editedData.setApellido(person.getApellido());
-        editedData.setDocument(person.getDocument());
-        editedData.setEmail(user.getMail());
-        editedData.setDireccion(person.getDireccion());
+            if (userWithEmail.isPresent()) {
+                Long user_id = userWithEmail.get().getId();
+                System.out.println("👤 Email registrado por userId=" + user_id);
 
-        return editedData;
+                Long requester_id_long;
+                try {
+                    requester_id_long = Long.parseLong(jwtUtil.extractUsername(token));
+                    System.out.println("🧾 ID extraído del token: " + requester_id_long);
+                } catch (NumberFormatException e) {
+                    throw new BadRequestException("Token inválido: ID de usuario no numérico");
+                }
 
+                if (!user_id.equals(requester_id_long)) {
+                    throw new ConflictException("El email ya se encuentra en uso");
+                }
+            }
+
+            System.out.println("📬 Validando email...");
+            if (!checkEmailService.isValidEmail(editData.getEmail())) {
+                throw new BadRequestException("El email no es válido");
+            }
+
+            Long userId = Long.parseLong(jwtUtil.extractUsername(token));
+            System.out.println("🧑 Buscando user ID " + userId);
+            User user = this.userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+            user.setMail(editData.getEmail());
+            userRepository.save(user);
+
+            Person person = personRepository.findByUser(user)
+                    .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
+
+            System.out.println("📄 Validando documento: " + editData.getDocument());
+
+            personRepository.findByDocument(editData.getDocument()).ifPresent(existing -> {
+                if (!existing.getId().equals(person.getId())) {
+                    throw new ConflictException("El documento ya está registrado por otro usuario");
+                }
+            });
+
+            person.setNombre(editData.getNombre());
+            person.setApellido(editData.getApellido());
+            person.setDocument(editData.getDocument());
+            person.setTelefono(editData.getTelefono());
+            person.setDireccion(editData.getDireccion());
+            personRepository.save(person);
+
+            EditDataDTO editedData = new EditDataDTO();
+            editedData.setNombre(person.getNombre());
+            editedData.setApellido(person.getApellido());
+            editedData.setDocument(person.getDocument());
+            editedData.setEmail(user.getMail());
+            editedData.setDireccion(person.getDireccion());
+            editedData.setTelefono(person.getTelefono());
+
+            return editedData;
+
+        } catch (Exception e) {
+            System.out.println(
+                    "❌ Error interno en updateUserData: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error al actualizar los datos del usuario: " + e.getMessage());
+        }
     }
 
     public void saveVerificationCode(String mail, String verificationCode) {

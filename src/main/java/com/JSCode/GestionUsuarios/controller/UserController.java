@@ -226,34 +226,61 @@ public class UserController {
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
     }
 
-    @PutMapping("/updateinfo")
-    public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(@RequestBody EditDataDTO newData,
-            @RequestHeader("Authorization") String token) {
-        if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
-                || newData.getTelefono() == null || newData.getDocument() == null) {
+@PutMapping("/updateinfo")
+public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(
+        @RequestBody EditDataDTO newData,
+        @RequestHeader("Authorization") String token) {
 
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
-        }
-        if (token == null || token.isEmpty()) {
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token no proporcionado", null, true, 400));
-        }
-        if (!token.startsWith(bearer)) {
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("Token en formato incorrecto", null, true, 400));
-        }
+    System.out.println("➡️ Entrando a /updateinfo");
 
-        if (!jwtUtil.isTokenValid(token.substring(7))) {
-            return ResponseEntity.badRequest().body(
-                    new ApiResponse<>(tokenmessagealert, null, true, 400));
-        }
+    System.out.println("📥 Datos recibidos:");
+    System.out.println("Nombre: " + newData.getNombre());
+    System.out.println("Apellido: " + newData.getApellido());
+    System.out.println("Dirección: " + newData.getDireccion());
+    System.out.println("Teléfono: " + newData.getTelefono());
+    System.out.println("Documento: " + newData.getDocument());
+    System.out.println("Email: " + newData.getEmail());
+    System.out.println("Token: " + token);
 
-        EditDataDTO changeData = userService.updateUserData(newData, token.substring(7));
+    if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
+            || newData.getTelefono() == null || newData.getDocument() == null) {
+        System.out.println("❌ Faltan datos obligatorios");
+        return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
+    }
 
+    if (token == null || token.isEmpty()) {
+        System.out.println("❌ Token nulo o vacío");
+        return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Token no proporcionado", null, true, 400));
+    }
+
+    if (!token.startsWith(bearer)) {
+        System.out.println("❌ Token sin formato Bearer");
+        return ResponseEntity.badRequest().body(
+                new ApiResponse<>("Token en formato incorrecto", null, true, 400));
+    }
+
+    String tokenClean = token.substring(7);
+    if (!jwtUtil.isTokenValid(tokenClean)) {
+        System.out.println("❌ Token inválido");
+        return ResponseEntity.badRequest().body(
+                new ApiResponse<>(tokenmessagealert, null, true, 400));
+    }
+
+    try {
+        EditDataDTO changeData = userService.updateUserData(newData, tokenClean);
+        System.out.println("✅ Datos actualizados correctamente");
         return ResponseEntity.ok(
                 new ApiResponse<>("Datos actualizados correctamente", changeData, false, 200));
+    } catch (Exception e) {
+        System.out.println("❌ Error en updateUserData: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.internalServerError().body(
+                new ApiResponse<>("Error inesperado: " + e.getMessage(), null, true, 500));
     }
+}
+
 
     @GetMapping("/getuser")
     public ResponseEntity<ApiResponse<UserDataDTO>> getUserData(@RequestHeader("Authorization") String authToken) {

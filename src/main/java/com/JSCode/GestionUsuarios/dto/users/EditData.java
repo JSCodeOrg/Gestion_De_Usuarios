@@ -9,14 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EditData {
-    
+public class EditData extends CommonUserFieldsDTO {
+
     private Long userId;
-    private String nombre;
-    private String apellido;
-    private String document;
-    private String telefono;
-    private String direccion;
-    private String fotoURL;
-    
+    private String document;   
+    private String fotoURL;  
 }

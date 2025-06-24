@@ -5,12 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserDataDTO {
+public class UserDataDTO extends CommonUserFieldsDTO {
     private String fotoperfil;
-    private String nombre;
-    private String apellido;
     private String documento;
     private String email;
-    private String telefono;
-    private String direccion;    
 }
