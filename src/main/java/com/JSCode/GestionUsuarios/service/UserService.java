@@ -473,4 +473,10 @@ public class UserService {
             throw new RuntimeException("Error al crear el delivery" + e.getMessage());
         }
     }
+
+    public String getUserMail(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        return user.getMail();
+    }
 }

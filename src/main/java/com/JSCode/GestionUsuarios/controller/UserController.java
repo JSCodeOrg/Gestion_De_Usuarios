@@ -29,6 +29,7 @@ import com.JSCode.GestionUsuarios.dto.users.DeliveryDataDTO;
 import com.JSCode.GestionUsuarios.dto.users.DeliveryEntregasData;
 import com.JSCode.GestionUsuarios.dto.users.ProfileImageDTO;
 import com.JSCode.GestionUsuarios.dto.users.UserDataDTO;
+import com.JSCode.GestionUsuarios.dto.users.UserIdDto;
 import com.JSCode.GestionUsuarios.dto.users.VerificationEditionRequest;
 import com.JSCode.GestionUsuarios.model.User;
 import com.JSCode.GestionUsuarios.utils.VerificationCodeGenerator;
@@ -226,43 +227,42 @@ public class UserController {
                 new ApiResponse<>("Usuario creado correctamente", null, false, 200));
     }
 
-@PutMapping("/updateinfo")
-public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(
-        @RequestBody EditDataDTO newData,
-        @RequestHeader("Authorization") String token) {
+    @PutMapping("/updateinfo")
+    public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(
+            @RequestBody EditDataDTO newData,
+            @RequestHeader("Authorization") String token) {
 
-    if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
-            || newData.getTelefono() == null || newData.getDocument() == null) {
-        return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
+        if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
+                || newData.getTelefono() == null || newData.getDocument() == null) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
+        }
+
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token no proporcionado", null, true, 400));
+        }
+
+        if (!token.startsWith(bearer)) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("Token en formato incorrecto", null, true, 400));
+        }
+
+        String tokenClean = token.substring(7);
+        if (!jwtUtil.isTokenValid(tokenClean)) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>(tokenmessagealert, null, true, 400));
+        }
+
+        try {
+            EditDataDTO changeData = userService.updateUserData(newData, tokenClean);
+            return ResponseEntity.ok(
+                    new ApiResponse<>("Datos actualizados correctamente", changeData, false, 200));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(
+                    new ApiResponse<>("Error inesperado: " + e.getMessage(), null, true, 500));
+        }
     }
-
-    if (token == null || token.isEmpty()) {
-        return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Token no proporcionado", null, true, 400));
-    }
-
-    if (!token.startsWith(bearer)) {
-        return ResponseEntity.badRequest().body(
-                new ApiResponse<>("Token en formato incorrecto", null, true, 400));
-    }
-
-    String tokenClean = token.substring(7);
-    if (!jwtUtil.isTokenValid(tokenClean)) {
-        return ResponseEntity.badRequest().body(
-                new ApiResponse<>(tokenmessagealert, null, true, 400));
-    }
-
-    try {
-        EditDataDTO changeData = userService.updateUserData(newData, tokenClean);
-        return ResponseEntity.ok(
-                new ApiResponse<>("Datos actualizados correctamente", changeData, false, 200));
-    } catch (Exception e) {
-        return ResponseEntity.internalServerError().body(
-                new ApiResponse<>("Error inesperado: " + e.getMessage(), null, true, 500));
-    }
-}
-
 
     @GetMapping("/getuser")
     public ResponseEntity<ApiResponse<UserDataDTO>> getUserData(@RequestHeader("Authorization") String authToken) {
@@ -339,6 +339,16 @@ public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(
 
         } catch (Exception e) {
             throw new RuntimeException("No se ha podido crear el repartidor." + e.getMessage());
+        }
+    }
+
+    @PostMapping("/getusermail")
+    public ResponseEntity<String> getUserMail(@RequestParam("userId") Long userId) {
+        String userMail = userService.getUserMail(userId);
+        if (userMail != null) {
+            return ResponseEntity.ok(userMail);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
         }
     }
 }
