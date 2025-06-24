@@ -1,4 +1,4 @@
-package com.JSCode.GestionUsuarios.service.Email;
+package com.JSCode.GestionUsuarios.service.email;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

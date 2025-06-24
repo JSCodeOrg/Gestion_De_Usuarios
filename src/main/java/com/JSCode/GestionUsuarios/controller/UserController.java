@@ -40,7 +40,7 @@ import com.JSCode.GestionUsuarios.dto.auth.RecoverResponse;
 import com.JSCode.GestionUsuarios.dto.password.NewPasswordDto;
 import com.JSCode.GestionUsuarios.security.JwtUtil;
 import com.JSCode.GestionUsuarios.service.UserService;
-import com.JSCode.GestionUsuarios.service.Email.RecoverEmail;
+import com.JSCode.GestionUsuarios.service.email.RecoverEmail;
 
 @RestController
 @RequestMapping("/users")
