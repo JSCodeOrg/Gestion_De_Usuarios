@@ -1,4 +1,4 @@
-package com.example.GestionUsuarios;
+package com.example.GestionUsuarios.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

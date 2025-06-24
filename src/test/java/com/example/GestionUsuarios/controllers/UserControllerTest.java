@@ -1,4 +1,4 @@
-package com.example.GestionUsuarios;
+package com.example.GestionUsuarios.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,8 +13,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import com.JSCode.GestionUsuarios.controller.UserController;
-import com.JSCode.GestionUsuarios.dto.ApiResponse;
-import com.JSCode.GestionUsuarios.dto.VerificationEditionRequest;
+import com.JSCode.GestionUsuarios.dto.api.ApiResponse;
+import com.JSCode.GestionUsuarios.dto.users.VerificationEditionRequest;
 import com.JSCode.GestionUsuarios.dto.register.UserRegisterDto;
 import com.JSCode.GestionUsuarios.exception.BadRequestException;
 import com.JSCode.GestionUsuarios.exception.ConflictException;
@@ -24,8 +24,6 @@ import com.JSCode.GestionUsuarios.service.UserService;
 
 
 class UserControllerTest {
-
-    /* 
     @Mock
     private UserService userService;
 
@@ -172,5 +170,5 @@ class UserControllerTest {
         }
 
         verify(userService, times(1)).verifyUserEdit(99L, "password123");
-    }*/
+    }
 }
