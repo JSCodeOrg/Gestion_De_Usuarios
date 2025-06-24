@@ -22,14 +22,4 @@ public class ApiResponse<T> {
         this(message, null, error, status);
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public int getCode() {
-        return status;
-    }
-
-
-
 }
