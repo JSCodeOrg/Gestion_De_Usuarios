@@ -1,10 +1,10 @@
 package com.example.GestionUsuarios;
 
 import org.junit.jupiter.api.Test;
-import com.JSCode.GestionUsuarios.controllers.UserController;
+import com.JSCode.GestionUsuarios.controller.UserController;
 import com.JSCode.GestionUsuarios.dto.ApiResponse;
-import com.JSCode.GestionUsuarios.dto.Auth.VerificationRequest;
-import com.JSCode.GestionUsuarios.services.UserService;
+import com.JSCode.GestionUsuarios.dto.auth.VerificationRequest;
+import com.JSCode.GestionUsuarios.service.UserService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

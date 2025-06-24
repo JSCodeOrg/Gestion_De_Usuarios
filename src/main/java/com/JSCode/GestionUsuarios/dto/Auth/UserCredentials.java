@@ -1,4 +1,4 @@
-package com.JSCode.GestionUsuarios.dto.Auth;
+package com.JSCode.GestionUsuarios.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
