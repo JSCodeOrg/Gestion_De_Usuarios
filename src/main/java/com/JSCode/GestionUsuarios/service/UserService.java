@@ -178,32 +178,23 @@ public class UserService {
 
     @Transactional
     public EditDataDTO updateUserData(EditDataDTO editData, String token) {
-
-        System.out.println("➡️ Entrando a updateUserData");
-
         if (editData == null) {
-            System.out.println("❌ editData llegó null");
             throw new BadRequestException("Los datos enviados son inválidos");
         }
-
-        System.out.println("📧 Email recibido: " + editData.getEmail());
 
         try {
             if (editData.getEmail() == null || editData.getEmail().isBlank()) {
                 throw new BadRequestException("El email no puede ser nulo o vacío");
             }
 
-            System.out.println("🔍 Buscando si el email ya está registrado...");
             Optional<User> userWithEmail = userRepository.findByMail(editData.getEmail());
 
             if (userWithEmail.isPresent()) {
                 Long user_id = userWithEmail.get().getId();
-                System.out.println("👤 Email registrado por userId=" + user_id);
 
                 Long requester_id_long;
                 try {
                     requester_id_long = Long.parseLong(jwtUtil.extractUsername(token));
-                    System.out.println("🧾 ID extraído del token: " + requester_id_long);
                 } catch (NumberFormatException e) {
                     throw new BadRequestException("Token inválido: ID de usuario no numérico");
                 }
@@ -212,14 +203,11 @@ public class UserService {
                     throw new ConflictException("El email ya se encuentra en uso");
                 }
             }
-
-            System.out.println("📬 Validando email...");
             if (!checkEmailService.isValidEmail(editData.getEmail())) {
                 throw new BadRequestException("El email no es válido");
             }
 
             Long userId = Long.parseLong(jwtUtil.extractUsername(token));
-            System.out.println("🧑 Buscando user ID " + userId);
             User user = this.userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
@@ -229,7 +217,6 @@ public class UserService {
             Person person = personRepository.findByUser(user)
                     .orElseThrow(() -> new NotFoundException("Información personal no encontrada"));
 
-            System.out.println("📄 Validando documento: " + editData.getDocument());
 
             personRepository.findByDocument(editData.getDocument()).ifPresent(existing -> {
                 if (!existing.getId().equals(person.getId())) {
@@ -255,9 +242,6 @@ public class UserService {
             return editedData;
 
         } catch (Exception e) {
-            System.out.println(
-                    "❌ Error interno en updateUserData: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Error al actualizar los datos del usuario: " + e.getMessage());
         }
     }
@@ -360,14 +344,10 @@ public class UserService {
             try {
                 recoverEmail.sendLoginData(email, provitionalpassword);
             } catch (MessagingException e) {
-
-                e.printStackTrace();
-
                 throw new RuntimeException("Error al enviar el correo de recuperación", e);
             }
             return user;
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Ha ocurrido un error al crear el usuario." + e.getMessage());
         }
     }

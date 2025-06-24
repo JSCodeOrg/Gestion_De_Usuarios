@@ -231,51 +231,33 @@ public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(
         @RequestBody EditDataDTO newData,
         @RequestHeader("Authorization") String token) {
 
-    System.out.println("➡️ Entrando a /updateinfo");
-
-    System.out.println("📥 Datos recibidos:");
-    System.out.println("Nombre: " + newData.getNombre());
-    System.out.println("Apellido: " + newData.getApellido());
-    System.out.println("Dirección: " + newData.getDireccion());
-    System.out.println("Teléfono: " + newData.getTelefono());
-    System.out.println("Documento: " + newData.getDocument());
-    System.out.println("Email: " + newData.getEmail());
-    System.out.println("Token: " + token);
-
     if (newData.getNombre() == null || newData.getApellido() == null || newData.getDireccion() == null
             || newData.getTelefono() == null || newData.getDocument() == null) {
-        System.out.println("❌ Faltan datos obligatorios");
         return ResponseEntity.badRequest().body(
                 new ApiResponse<>("Se requiere nombre, apellido y demás datos.", null, true, 400));
     }
 
     if (token == null || token.isEmpty()) {
-        System.out.println("❌ Token nulo o vacío");
         return ResponseEntity.badRequest().body(
                 new ApiResponse<>("Token no proporcionado", null, true, 400));
     }
 
     if (!token.startsWith(bearer)) {
-        System.out.println("❌ Token sin formato Bearer");
         return ResponseEntity.badRequest().body(
                 new ApiResponse<>("Token en formato incorrecto", null, true, 400));
     }
 
     String tokenClean = token.substring(7);
     if (!jwtUtil.isTokenValid(tokenClean)) {
-        System.out.println("❌ Token inválido");
         return ResponseEntity.badRequest().body(
                 new ApiResponse<>(tokenmessagealert, null, true, 400));
     }
 
     try {
         EditDataDTO changeData = userService.updateUserData(newData, tokenClean);
-        System.out.println("✅ Datos actualizados correctamente");
         return ResponseEntity.ok(
                 new ApiResponse<>("Datos actualizados correctamente", changeData, false, 200));
     } catch (Exception e) {
-        System.out.println("❌ Error en updateUserData: " + e.getMessage());
-        e.printStackTrace();
         return ResponseEntity.internalServerError().body(
                 new ApiResponse<>("Error inesperado: " + e.getMessage(), null, true, 500));
     }
@@ -356,7 +338,6 @@ public ResponseEntity<ApiResponse<EditDataDTO>> updateUserInfo(
             return ResponseEntity.ok("Se ha creado satisfactoriamente el repartidor:" + new_deliveryData);
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("No se ha podido crear el repartidor." + e.getMessage());
         }
     }
